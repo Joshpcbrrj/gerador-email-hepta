@@ -32,8 +32,8 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def formatar_telefone_individual(telefone_str):
-    """Formata número de telefone no padrão (XX) XXXXX-XXXX"""
+def formatar_celular(telefone_str):
+    """Formata número de telefone CELULAR no padrão (XX) 9XXXX-XXXX"""
     numeros = re.sub(r'\D', '', telefone_str)
     if len(numeros) >= 10:
         ddd = numeros[:2]
@@ -42,6 +42,20 @@ def formatar_telefone_individual(telefone_str):
             numero = f"9{numero}"
         if len(numero) == 9:
             numero = f"{numero[:5]}-{numero[5:]}"
+        return f"({ddd}) {numero}"
+    return telefone_str
+
+def formatar_fixo(telefone_str):
+    """Formata número de telefone FIXO no padrão (XX) XXXX-XXXX"""
+    numeros = re.sub(r'\D', '', telefone_str)
+    if len(numeros) >= 10:
+        ddd = numeros[:2]
+        numero = numeros[2:]
+        # Se tem 9 digitos e comeca com 9 (celular digitado como fixo), remove o 9
+        if len(numero) == 9 and numero.startswith('9'):
+            numero = numero[1:]
+        if len(numero) == 8:
+            numero = f"{numero[:4]}-{numero[4:]}"
         return f"({ddd}) {numero}"
     return telefone_str
 
@@ -64,7 +78,6 @@ def gerar_email_aviso_html(titulo, num_req, nome, telefones, data_hora, tentativ
     winvnc_base64 = imagem_to_base64('winvnc.png')
     logo_base64 = imagem_to_base64('logo.png')
     
-    # Mapeamento para texto ordinal
     tentativa_texto = {
         '1': 'primeira', '2': 'segunda', '3': 'terceira'
     }.get(tentativa, 'primeira')
@@ -327,15 +340,12 @@ class GeradorEmailGUI:
         """Inicializa a janela principal"""
         self.janela = tk.Tk()
         self.janela.title("Gerador de E-mails - Suporte Hepta")
-        self.janela.geometry("800x750")
+        self.janela.geometry("800x850")
         self.janela.resizable(True, True)
-        
-        # Configurar cor de fundo
         self.janela.configure(bg='#f0f0f0')
         
         # Variáveis
         self.tipo_email = tk.StringVar(value="1")
-        self.telefones_lista = []
         
         # Criar widgets
         self.criar_widgets()
@@ -396,36 +406,65 @@ class GeradorEmailGUI:
             rb.pack(anchor=tk.W, pady=3)
         
         # ====================================================================
-        # LINHA 3: TELEFONES
+        # LINHA 3: TELEFONES CELULAR
         # ====================================================================
-        frame_telefones = tk.LabelFrame(self.scrollable_frame, text="3️⃣ TELEFONES PARA CONTATO", 
-                                         font=("Arial", 10, "bold"), bg='#f0f0f0', padx=10, pady=10)
-        frame_telefones.pack(fill=tk.X, padx=20, pady=10)
+        frame_celular = tk.LabelFrame(self.scrollable_frame, text="📱 3️⃣ TELEFONES CELULAR (com 9 dígitos)", 
+                                       font=("Arial", 10, "bold"), bg='#f0f0f0', padx=10, pady=10)
+        frame_celular.pack(fill=tk.X, padx=20, pady=10)
         
-        # Frame para entrada
-        frame_add = tk.Frame(frame_telefones, bg='#f0f0f0')
-        frame_add.pack(fill=tk.X, pady=5)
+        # Frame para entrada de celular
+        frame_add_cel = tk.Frame(frame_celular, bg='#f0f0f0')
+        frame_add_cel.pack(fill=tk.X, pady=5)
         
-        tk.Label(frame_add, text="Número:", bg='#f0f0f0', font=("Arial", 10)).pack(side=tk.LEFT)
-        self.entry_telefone = tk.Entry(frame_add, width=25, font=("Arial", 10))
-        self.entry_telefone.pack(side=tk.LEFT, padx=5)
-        self.entry_telefone.bind('<Return>', self.adicionar_telefone)
+        tk.Label(frame_add_cel, text="Número:", bg='#f0f0f0', font=("Arial", 10)).pack(side=tk.LEFT)
+        self.entry_celular = tk.Entry(frame_add_cel, width=25, font=("Arial", 10))
+        self.entry_celular.pack(side=tk.LEFT, padx=5)
+        self.entry_celular.bind('<Return>', self.adicionar_celular)
         
-        btn_adicionar = tk.Button(frame_add, text="➕ Adicionar", command=self.adicionar_telefone,
-                                  bg="#4CAF50", fg="white", font=("Arial", 9), padx=10)
-        btn_adicionar.pack(side=tk.LEFT, padx=5)
+        btn_add_cel = tk.Button(frame_add_cel, text="➕ Adicionar Celular", command=self.adicionar_celular,
+                                bg="#4CAF50", fg="white", font=("Arial", 9), padx=10)
+        btn_add_cel.pack(side=tk.LEFT, padx=5)
         
-        # Lista de telefones
-        self.lista_telefones = tk.Listbox(frame_telefones, height=4, width=50, font=("Arial", 10))
-        self.lista_telefones.pack(fill=tk.X, pady=5)
+        # Lista de celulares
+        self.lista_celulares = tk.Listbox(frame_celular, height=3, width=50, font=("Arial", 10))
+        self.lista_celulares.pack(fill=tk.X, pady=5)
         
-        # Botão remover
-        btn_remover = tk.Button(frame_telefones, text="❌ Remover selecionado", command=self.remover_telefone,
-                                bg="#f44336", fg="white", font=("Arial", 9), padx=10)
-        btn_remover.pack()
+        # Botão remover celular
+        btn_remove_cel = tk.Button(frame_celular, text="❌ Remover Celular Selecionado", command=self.remover_celular,
+                                   bg="#f44336", fg="white", font=("Arial", 9), padx=10)
+        btn_remove_cel.pack()
         
         # ====================================================================
-        # LINHA 4: HORÁRIO
+        # LINHA 4: TELEFONES FIXOS
+        # ====================================================================
+        frame_fixo = tk.LabelFrame(self.scrollable_frame, text="🏠 4️⃣ TELEFONES FIXOS (sem 9 na frente)", 
+                                    font=("Arial", 10, "bold"), bg='#f0f0f0', padx=10, pady=10)
+        frame_fixo.pack(fill=tk.X, padx=20, pady=10)
+        
+        # Frame para entrada de fixo
+        frame_add_fixo = tk.Frame(frame_fixo, bg='#f0f0f0')
+        frame_add_fixo.pack(fill=tk.X, pady=5)
+        
+        tk.Label(frame_add_fixo, text="Número:", bg='#f0f0f0', font=("Arial", 10)).pack(side=tk.LEFT)
+        self.entry_fixo = tk.Entry(frame_add_fixo, width=25, font=("Arial", 10))
+        self.entry_fixo.pack(side=tk.LEFT, padx=5)
+        self.entry_fixo.bind('<Return>', self.adicionar_fixo)
+        
+        btn_add_fixo = tk.Button(frame_add_fixo, text="➕ Adicionar Fixo", command=self.adicionar_fixo,
+                                 bg="#FF9800", fg="white", font=("Arial", 9), padx=10)
+        btn_add_fixo.pack(side=tk.LEFT, padx=5)
+        
+        # Lista de fixos
+        self.lista_fixos = tk.Listbox(frame_fixo, height=3, width=50, font=("Arial", 10))
+        self.lista_fixos.pack(fill=tk.X, pady=5)
+        
+        # Botão remover fixo
+        btn_remove_fixo = tk.Button(frame_fixo, text="❌ Remover Fixo Selecionado", command=self.remover_fixo,
+                                    bg="#f44336", fg="white", font=("Arial", 9), padx=10)
+        btn_remove_fixo.pack()
+        
+        # ====================================================================
+        # LINHA 5: HORÁRIO
         # ====================================================================
         frame_horario = tk.LabelFrame(self.scrollable_frame, text="⏰ HORÁRIO DO CONTATO (para avisos)", 
                                        font=("Arial", 10, "bold"), bg='#f0f0f0', padx=10, pady=10)
@@ -447,9 +486,9 @@ class GeradorEmailGUI:
         self.spin_minuto.insert(0, "00")
         
         # ====================================================================
-        # LINHA 5: NOME DO FUNCIONÁRIO
+        # LINHA 6: NOME DO FUNCIONÁRIO
         # ====================================================================
-        frame_nome = tk.LabelFrame(self.scrollable_frame, text="4️⃣ NOME DO FUNCIONÁRIO", 
+        frame_nome = tk.LabelFrame(self.scrollable_frame, text="5️⃣ NOME DO FUNCIONÁRIO", 
                                     font=("Arial", 10, "bold"), bg='#f0f0f0', padx=10, pady=10)
         frame_nome.pack(fill=tk.X, padx=20, pady=10)
         
@@ -467,13 +506,13 @@ class GeradorEmailGUI:
                               bg="#2196F3", fg="white", font=("Arial", 12, "bold"), padx=20, pady=10)
         btn_gerar.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
         
-        btn_limpar = tk.Button(frame_botoes, text="🗑️ LIMPAR FORMULÁRIO", command=self.limpar_formulario,
+        btn_limpar = tk.Button(frame_botoes, text="🗑️ LIMPAR LISTAS", command=self.limpar_listas,
                                bg="#FF9800", fg="white", font=("Arial", 12, "bold"), padx=20, pady=10)
         btn_limpar.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
         
-        btn_novo = tk.Button(frame_botoes, text="✨ NOVO E-MAIL", command=self.novo_email,
-                             bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=20, pady=10)
-        btn_novo.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
+        btn_limpar_tudo = tk.Button(frame_botoes, text="✨ NOVO E-MAIL", command=self.limpar_tudo,
+                                    bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), padx=20, pady=10)
+        btn_limpar_tudo.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
         
         # ====================================================================
         # ÁREA DE PREVIEW
@@ -482,7 +521,7 @@ class GeradorEmailGUI:
                                        font=("Arial", 10, "bold"), bg='#f0f0f0', padx=10, pady=10)
         frame_preview.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         
-        self.text_preview = scrolledtext.ScrolledText(frame_preview, height=12, width=70, 
+        self.text_preview = scrolledtext.ScrolledText(frame_preview, height=10, width=70, 
                                                        font=("Consolas", 9), wrap=tk.WORD)
         self.text_preview.pack(fill=tk.BOTH, expand=True)
         
@@ -496,15 +535,12 @@ class GeradorEmailGUI:
         # ====================================================================
         # RODAPÉ COM DEDICATÓRIA
         # ====================================================================
-        # Frame do rodapé
         frame_rodape = tk.Frame(self.scrollable_frame, bg='#e0e0e0', height=50)
         frame_rodape.pack(fill=tk.X, side=tk.BOTTOM, pady=(10,0))
         
-        # Linha separadora
         separador = tk.Frame(frame_rodape, height=2, bg='#cccccc')
         separador.pack(fill=tk.X, pady=(5,5))
         
-        # Texto da dedicatória com link clicável
         rodape_texto = tk.Label(frame_rodape, 
                                 text="✨ Criado por: Josué B. Almeida ✨", 
                                 font=("Arial", 9, "bold"), 
@@ -512,24 +548,21 @@ class GeradorEmailGUI:
                                 bg='#e0e0e0')
         rodape_texto.pack(pady=(0,2))
         
-        # Link do GitHub (clicável)
         github_link = tk.Label(frame_rodape, 
                                text="🔗 GitHub: https://github.com/Joshpcbrrj", 
                                font=("Arial", 8), 
                                fg="#2196F3", 
                                bg='#e0e0e0',
-                               cursor="hand2")  # Muda o cursor para mãozinha
+                               cursor="hand2")
         github_link.pack(pady=(0,5))
         
-        # Função para abrir o link do GitHub
         def abrir_github(event):
             webbrowser.open("https://github.com/Joshpcbrrj")
         
         github_link.bind("<Button-1>", abrir_github)
         
-        # Versão do programa
         versao_label = tk.Label(frame_rodape, 
-                                text="Versão 2.0 - Maio/2026", 
+                                text="Versão 2.1 - Maio/2026 (Celular e Fixo separados)", 
                                 font=("Arial", 7), 
                                 fg="#999999", 
                                 bg='#e0e0e0')
@@ -538,31 +571,66 @@ class GeradorEmailGUI:
     def log(self, mensagem, cor="green"):
         """Atualiza o status"""
         self.status_label.config(text=mensagem, fg=cor)
-        
-    def adicionar_telefone(self, event=None):
-        """Adiciona telefone à lista"""
-        telefone = self.entry_telefone.get().strip()
+    
+    # ========================================================================
+    # FUNÇÕES PARA CELULAR
+    # ========================================================================
+    def adicionar_celular(self, event=None):
+        """Adiciona celular à lista"""
+        telefone = self.entry_celular.get().strip()
         if telefone:
-            telefone_formatado = formatar_telefone_individual(telefone)
-            self.lista_telefones.insert(tk.END, telefone_formatado)
-            self.entry_telefone.delete(0, tk.END)
-            self.log(f"✅ Telefone adicionado: {telefone_formatado}")
+            telefone_formatado = formatar_celular(telefone)
+            self.lista_celulares.insert(tk.END, telefone_formatado)
+            self.entry_celular.delete(0, tk.END)
+            self.log(f"✅ Celular adicionado: {telefone_formatado}")
         else:
-            messagebox.showwarning("Aviso", "Digite um número de telefone!")
-            
-    def remover_telefone(self):
-        """Remove telefone selecionado da lista"""
-        selecionado = self.lista_telefones.curselection()
+            messagebox.showwarning("Aviso", "Digite um número de celular!")
+    
+    def remover_celular(self):
+        """Remove celular selecionado"""
+        selecionado = self.lista_celulares.curselection()
         if selecionado:
-            removido = self.lista_telefones.get(selecionado)
-            self.lista_telefones.delete(selecionado)
-            self.log(f"🗑️ Telefone removido: {removido}")
+            removido = self.lista_celulares.get(selecionado)
+            self.lista_celulares.delete(selecionado)
+            self.log(f"🗑️ Celular removido: {removido}")
         else:
-            messagebox.showwarning("Aviso", "Selecione um telefone para remover!")
-            
-    def obter_telefones(self):
-        """Retorna lista de telefones"""
-        return list(self.lista_telefones.get(0, tk.END))
+            messagebox.showwarning("Aviso", "Selecione um celular para remover!")
+    
+    # ========================================================================
+    # FUNÇÕES PARA FIXO
+    # ========================================================================
+    def adicionar_fixo(self, event=None):
+        """Adiciona telefone fixo à lista"""
+        telefone = self.entry_fixo.get().strip()
+        if telefone:
+            telefone_formatado = formatar_fixo(telefone)
+            self.lista_fixos.insert(tk.END, telefone_formatado)
+            self.entry_fixo.delete(0, tk.END)
+            self.log(f"✅ Telefone fixo adicionado: {telefone_formatado}")
+        else:
+            messagebox.showwarning("Aviso", "Digite um número de telefone fixo!")
+    
+    def remover_fixo(self):
+        """Remove telefone fixo selecionado"""
+        selecionado = self.lista_fixos.curselection()
+        if selecionado:
+            removido = self.lista_fixos.get(selecionado)
+            self.lista_fixos.delete(selecionado)
+            self.log(f"🗑️ Telefone fixo removido: {removido}")
+        else:
+            messagebox.showwarning("Aviso", "Selecione um telefone fixo para remover!")
+    
+    # ========================================================================
+    # FUNÇÕES AUXILIARES
+    # ========================================================================
+    def obter_todos_telefones(self):
+        """Retorna lista com todos os telefones (celular + fixo)"""
+        telefones = []
+        for item in self.lista_celulares.get(0, tk.END):
+            telefones.append(item)
+        for item in self.lista_fixos.get(0, tk.END):
+            telefones.append(item)
+        return telefones
     
     def formatar_telefones(self, telefones):
         """Formata lista de telefones para texto"""
@@ -573,11 +641,21 @@ class GeradorEmailGUI:
         else:
             return ", ".join(telefones[:-1]) + " e " + telefones[-1]
     
-    def limpar_formulario(self):
-        """Limpa todos os campos"""
+    def limpar_listas(self):
+        """Limpa apenas as listas de telefones"""
+        self.lista_celulares.delete(0, tk.END)
+        self.lista_fixos.delete(0, tk.END)
+        self.entry_celular.delete(0, tk.END)
+        self.entry_fixo.delete(0, tk.END)
+        self.log("🗑️ Listas de telefones limpas!")
+    
+    def limpar_tudo(self):
+        """Limpa TODO o formulário para um novo e-mail"""
         self.entry_req.delete(0, tk.END)
-        self.lista_telefones.delete(0, tk.END)
-        self.entry_telefone.delete(0, tk.END)
+        self.lista_celulares.delete(0, tk.END)
+        self.lista_fixos.delete(0, tk.END)
+        self.entry_celular.delete(0, tk.END)
+        self.entry_fixo.delete(0, tk.END)
         self.entry_nome.delete(0, tk.END)
         self.entry_nome.insert(0, "Josué B. Almeida")
         self.spin_hora.delete(0, tk.END)
@@ -586,17 +664,12 @@ class GeradorEmailGUI:
         self.spin_minuto.insert(0, "00")
         self.tipo_email.set("1")
         self.text_preview.delete(1.0, tk.END)
-        self.log("🗑️ Formulário limpo!")
-        
-    def novo_email(self):
-        """Limpa e prepara para novo e-mail"""
-        self.limpar_formulario()
+        self.log("✨ Formulário limpo! Pronto para novo e-mail.")
         messagebox.showinfo("Novo E-mail", "Formulário limpo! Preencha os dados para um novo e-mail.")
-        
+    
     def gerar_email(self):
         """Gera o e-mail com os dados do formulário"""
         
-        # Validações
         num_req = self.entry_req.get().strip()
         if not num_req:
             messagebox.showerror("Erro", "Digite o número da requisição!")
@@ -638,9 +711,9 @@ class GeradorEmailGUI:
             
         else:
             # E-MAIL DE AVISO
-            telefones = self.obter_telefones()
+            telefones = self.obter_todos_telefones()
             if not telefones:
-                messagebox.showerror("Erro", "Adicione pelo menos um telefone!")
+                messagebox.showerror("Erro", "Adicione pelo menos um telefone (celular ou fixo)!")
                 return
                 
             telefone_str = self.formatar_telefones(telefones)
@@ -671,7 +744,7 @@ class GeradorEmailGUI:
         
         self.log(f"🌐 HTML aberto: {nome_arquivo}", "blue")
         messagebox.showinfo("Sucesso", f"E-mail gerado com sucesso!\n\nO navegador foi aberto.\nSelecione tudo (Ctrl+A) e copie (Ctrl+C)\n\nArquivo salvo: {nome_arquivo}")
-        
+    
     def executar(self):
         """Inicia a interface gráfica"""
         self.janela.mainloop()
