@@ -562,10 +562,10 @@ class GeradorEmailGUI:
         github_link.bind("<Button-1>", abrir_github)
         
         versao_label = tk.Label(frame_rodape, 
-                                text="Versão 2.1 - Maio/2026 (Celular e Fixo separados)", 
-                                font=("Arial", 7), 
-                                fg="#999999", 
-                                bg='#e0e0e0')
+                        text="Versão 2.2 - Maio/2026 (Correção de telefones fixos)", 
+                        font=("Arial", 7), 
+                        fg="#999999", 
+                        bg='#e0e0e0')
         versao_label.pack(pady=(0,5))
         
     def log(self, mensagem, cor="green"):
