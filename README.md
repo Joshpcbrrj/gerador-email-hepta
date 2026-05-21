@@ -19,7 +19,7 @@ Interface gráfica amigável do Gerador de E-mails
 [![Tkinter](https://img.shields.io/badge/Tkinter-GUI-blue)](https://docs.python.org/3/library/tkinter.html)
 [![Status](https://img.shields.io/badge/Status-Em%20Produção-brightgreen)]()
 [![GitHub](https://img.shields.io/badge/GitHub-Repositório-181717?logo=github)](https://github.com/Joshpcbrrj/gerador-email-hepta)
-[![Download](https://img.shields.io/badge/Download-Executável-blue?logo=windows)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v2.2-blue)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
 
 ---
 
@@ -99,7 +99,7 @@ Interface gráfica amigável do Gerador de E-mails
 | Métrica            | Status                                    |
 |--------------------|-------------------------------------------|
 | 🟢 **Build**       | Sucesso                                   |
-| 🟢 **Executável**  | Versão 2.0                                |
+| 🟢 **Executável**  | Versão 2.2                                |
 | 🟢 **Interface**   | 100% funcional                            |
 | 🟢 **Responsivo**  | ✅ Janela redimensionável                 |
 | 🟢 **Portável**    | ✅ Único arquivo .exe                     |
@@ -344,10 +344,32 @@ Preencha os dados, clique em "Gerar E-mail" e o navegador abrirá com o e-mail f
 ---
 
 ## 🙏 **Agradecimentos**
-- 🎓 **Aos colegas de trabalho** que ajudaram a refinar os templates de e-mail
-- 🚀 **A você, usuário** por utilizar e valorizar o projeto
 
+- 🧪 **A todos que testaram e deram feedback** — vocês são os verdadeiros QA do projeto
+- 🐍 **À comunidade Python** pelo ecossistema fantástico (PyInstaller, ReportLab, Pillow)
+- 👥 **Aos colegas de trabalho** que ajudaram a refinar os templates de e-mail
+- 🤖 **Ao DeepSeek** pela jornada de Vibe Coding: dúvidas sanadas, interface Tkinter construída e melhorias colaborativas
+- 💙 **A você, usuário** por confiar e utilizar este projeto no seu dia a dia
+  
 ---
+
+## 📋 **Changelog**
+
+### Versão 2.2 (Maio/2026)
+
+- 🐛 **Correção:** Telefones fixos não recebem mais o dígito 9 automaticamente
+- 🎨 **Melhoria:** Interface com separação visual entre celular e fixo
+
+### Versão 2.1 (Maio/2026)
+
+- ✨ **Novidade:** Separação entre telefones celular e fixo
+- 🎨 **Interface:** Botões coloridos (verde para celular, laranja para fixo)
+
+### Versão 2.0 (Maio/2026)
+
+- 🚀 Lançamento oficial com interface gráfica
+- 📧 Geração de e-mails de aviso e fechamento
+- 🖼️ Imagens embutidas nos e-mails
 
 ## ⭐ **Contribua com o projeto**
 
