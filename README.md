@@ -19,6 +19,7 @@ Interface gráfica amigável do Gerador de E-mails
 [![Tkinter](https://img.shields.io/badge/Tkinter-GUI-blue)](https://docs.python.org/3/library/tkinter.html)
 [![Status](https://img.shields.io/badge/Status-Em%20Produção-brightgreen)]()
 [![GitHub](https://img.shields.io/badge/GitHub-Repositório-181717?logo=github)](https://github.com/Joshpcbrrj/gerador-email-hepta)
+[![Download](https://img.shields.io/badge/Download-Executável-blue?logo=windows)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
 
 ---
 
