@@ -48,5 +48,6 @@ ENV/
 # ============================================
 # ARQUIVOS DE TESTE
 # ============================================
-test_*.py
-*_test.py
+.pytest_cache/
+.coverage
+htmlcov/

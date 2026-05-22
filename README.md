@@ -15,11 +15,12 @@ Interface gráfica amigável do Gerador de E-mails
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-11%20%7C%2010-0078D6?logo=windows)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python)](https://python.org)
-[![PyInstaller](https://img.shields.io/badge/PyInstaller-6.20-灰色?logo=github)](https://pyinstaller.org)
+[![PyInstaller](https://img.shields.io/badge/PyInstaller-6.20-0d47a1?logo=github)](https://pyinstaller.org)
 [![Tkinter](https://img.shields.io/badge/Tkinter-GUI-blue)](https://docs.python.org/3/library/tkinter.html)
-[![Status](https://img.shields.io/badge/Status-Em%20Produção-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-74%20passed-brightgreen)](tests/)
+[![Status](https://img.shields.io/badge/Status-Em%20Produção-brightgreen)](https://github.com/Joshpcbrrj/gerador-email-hepta)
 [![GitHub](https://img.shields.io/badge/GitHub-Repositório-181717?logo=github)](https://github.com/Joshpcbrrj/gerador-email-hepta)
-[![Release](https://img.shields.io/badge/Release-v2.2-blue)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v2.3-blue)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
 
 ---
 
@@ -99,7 +100,7 @@ Interface gráfica amigável do Gerador de E-mails
 | Métrica            | Status                                    |
 |--------------------|-------------------------------------------|
 | 🟢 **Build**       | Sucesso                                   |
-| 🟢 **Executável**  | Versão 2.2                                |
+| 🟢 **Executável**  | Versão 2.3                                |
 | 🟢 **Interface**   | 100% funcional                            |
 | 🟢 **Responsivo**  | ✅ Janela redimensionável                 |
 | 🟢 **Portável**    | ✅ Único arquivo .exe                     |
@@ -355,21 +356,22 @@ Preencha os dados, clique em "Gerar E-mail" e o navegador abrirá com o e-mail f
 
 ## 📋 **Changelog**
 
+### Versão 2.3 (Maio/2026)
+
+- ✨ **Novidade:** Feedback visual da opção escolhida nos avisos
+- ✨ **Novidade:** Mensagens temporárias que desaparecem após 2 segundos
+- ✨ **Novidade:** Links no rodapé (GitHub e LinkedIn)
+- ✨ **Novidade:** Validação de limite máximo de telefones (10)
+- 🐛 **Correção:** Formatação de telefones fixos (não adiciona 9)
+- 🐛 **Correção:** Limpeza automática de arquivos temporários
+- 🧪 **Testes:** 74 testes unitários implementados
+- 🎨 **Interface:** Melhorias visuais no modo escuro
+- 📱 **UX:** Botões de tema e atualização no canto superior direito
+
 ### Versão 2.2 (Maio/2026)
 
 - 🐛 **Correção:** Telefones fixos não recebem mais o dígito 9 automaticamente
 - 🎨 **Melhoria:** Interface com separação visual entre celular e fixo
-
-### Versão 2.1 (Maio/2026)
-
-- ✨ **Novidade:** Separação entre telefones celular e fixo
-- 🎨 **Interface:** Botões coloridos (verde para celular, laranja para fixo)
-
-### Versão 2.0 (Maio/2026)
-
-- 🚀 Lançamento oficial com interface gráfica
-- 📧 Geração de e-mails de aviso e fechamento
-- 🖼️ Imagens embutidas nos e-mails
 
 ## ⭐ **Contribua com o projeto**
 
