@@ -3,16 +3,39 @@
 MÓDULO DE GERAÇÃO DE HTML
 ================================================================================
 Gera os e-mails em formato HTML (aviso e fechamento).
+
+Autor: Josué B. Almeida
+GitHub: https://github.com/Joshpcbrrj
 """
 
-from imagens import imagem_to_base64
+from imagens import obter_winvnc_base64, obter_logo_base64
 
 
 def gerar_email_aviso_html(titulo, num_req, nome, telefones, data_hora, tentativa):
-    """Gera HTML do e-mail de aviso"""
-    winvnc_base64 = imagem_to_base64('winvnc.png')
-    logo_base64 = imagem_to_base64('logo.png')
+    """
+    FUNÇÃO: gerar_email_aviso_html
+    ===========================================================================
+    Gera o e-mail de AVISO (1ª, 2ª ou 3ª tentativa) em formato HTML.
     
+    PARÂMETROS:
+    ===========================================================================
+    - titulo: str - Título do e-mail (ex: "REQ123 - 1º aviso...")
+    - num_req: str - Número da requisição (ex: "REQ123")
+    - nome: str - Nome do funcionário que assina
+    - telefones: str - Telefone(s) formatado(s)
+    - data_hora: str - Data e hora formatada
+    - tentativa: str - "1", "2" ou "3"
+    
+    RETORNO:
+    ===========================================================================
+    str - String contendo o HTML completo do e-mail de aviso
+    """
+    
+    # Obtém as imagens em base64 usando as funções centralizadas
+    winvnc_base64 = obter_winvnc_base64()
+    logo_base64 = obter_logo_base64()
+    
+    # Mapeamento para texto ordinal
     tentativa_texto = {
         '1': 'primeira', '2': 'segunda', '3': 'terceira'
     }.get(tentativa, 'primeira')
@@ -148,12 +171,30 @@ def gerar_email_aviso_html(titulo, num_req, nome, telefones, data_hora, tentativ
 </div>
 </body>
 </html>"""
+    
     return html
 
 
 def gerar_email_fechamento_html(titulo, num_req, nome, data_hora):
-    """Gera HTML do e-mail de fechamento"""
-    logo_base64 = imagem_to_base64('logo.png')
+    """
+    FUNÇÃO: gerar_email_fechamento_html
+    ===========================================================================
+    Gera o e-mail de FECHAMENTO (após 3 tentativas sem sucesso) em HTML.
+    
+    PARÂMETROS:
+    ===========================================================================
+    - titulo: str - Título do e-mail (ex: "REQ123 - Chamado Fechado")
+    - num_req: str - Número da requisição (ex: "REQ123")
+    - nome: str - Nome do funcionário que assina
+    - data_hora: str - Data e hora atuais formatadas
+    
+    RETORNO:
+    ===========================================================================
+    str - String contendo o HTML completo do e-mail de fechamento
+    """
+    
+    # Obtém a logo em base64
+    logo_base64 = obter_logo_base64()
     
     html = f"""<!DOCTYPE html>
 <html>
@@ -263,4 +304,5 @@ def gerar_email_fechamento_html(titulo, num_req, nome, data_hora):
 </div>
 </body>
 </html>"""
+    
     return html

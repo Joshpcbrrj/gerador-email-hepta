@@ -12,9 +12,18 @@ Autor: Josué B. Almeida
 GitHub: https://github.com/Joshpcbrrj
 """
 
-import os  # Sistema operacional - para verificar se arquivos existem
-import base64  # Base64 - para converter imagens em texto
-from utils import resource_path  # Importa a função para encontrar arquivos no .exe
+import os
+import base64
+from utils import resource_path
+
+# ============================================================================
+# CONSTANTES COM OS CAMINHOS DAS IMAGENS
+# ============================================================================
+
+# Caminho para a imagem do WinVNC (agora dentro da pasta assets)
+CAMINHO_WINVNC = os.path.join("assets", "winvnc.png")
+# Caminho para a logo (agora dentro da pasta assets)
+CAMINHO_LOGO = os.path.join("assets", "logo.png")
 
 # ============================================================================
 # CONVERSÃO DE IMAGEM PARA BASE64
@@ -60,26 +69,25 @@ def imagem_to_base64(caminho_imagem):
     
     PARÂMETROS:
     ===========================================================================
-    caminho_imagem: str - Nome do arquivo de imagem (ex: "logo.png")
+    caminho_imagem: str - Caminho do arquivo de imagem (ex: "assets/logo.png")
     
     RETORNO:
     ===========================================================================
     str or None - String base64 da imagem, ou None se não encontrou
     """
     try:
-        # PRIMEIRA TENTATIVA: procurar na pasta atual
-        # os.path.exists() verifica se o arquivo existe
+        # PRIMEIRA TENTATIVA: procurar no caminho especificado
         if os.path.exists(caminho_imagem):
-            # "rb" = read binary (ler como arquivo binário)
-            # O 'with' garante que o arquivo será fechado automaticamente
             with open(caminho_imagem, "rb") as img_file:
-                # .read() lê todo o arquivo
-                # .b64encode() converte para base64 (retorna bytes)
-                # .decode('utf-8') converte bytes para string
                 return base64.b64encode(img_file.read()).decode('utf-8')
         
-        # SEGUNDA TENTATIVA: procurar via resource_path (para .exe)
-        # resource_path encontra a pasta temporária do PyInstaller
+        # SEGUNDA TENTATIVA: tentar sem a pasta assets (fallback)
+        nome_arquivo = os.path.basename(caminho_imagem)
+        if os.path.exists(nome_arquivo):
+            with open(nome_arquivo, "rb") as img_file:
+                return base64.b64encode(img_file.read()).decode('utf-8')
+        
+        # TERCEIRA TENTATIVA: procurar via resource_path (para .exe)
         caminho_resource = resource_path(caminho_imagem)
         if os.path.exists(caminho_resource):
             with open(caminho_resource, "rb") as img_file:
@@ -89,9 +97,29 @@ def imagem_to_base64(caminho_imagem):
         return None
         
     except Exception as e:
-        # Captura qualquer erro (arquivo corrompido, permissão negada, etc)
-        print(f"Erro ao carregar imagem: {e}")
+        print(f"Erro ao carregar imagem {caminho_imagem}: {e}")
         return None
+
+
+def obter_winvnc_base64():
+    """
+    FUNÇÃO: obter_winvnc_base64
+    ===========================================================================
+    Retorna a imagem do WinVNC em base64.
+    Centraliza o caminho da imagem em um único lugar.
+    """
+    return imagem_to_base64(CAMINHO_WINVNC)
+
+
+def obter_logo_base64():
+    """
+    FUNÇÃO: obter_logo_base64
+    ===========================================================================
+    Retorna a logo em base64.
+    Centraliza o caminho da imagem em um único lugar.
+    """
+    return imagem_to_base64(CAMINHO_LOGO)
+
 
 # ============================================================================
 # VERIFICAÇÃO DE IMAGENS
@@ -125,15 +153,19 @@ def verificar_imagens():
     print("\n📁 Verificando imagens:")
     
     # Verifica a imagem do WinVNC
-    if os.path.exists('winvnc.png'):
-        print("  ✅ winvnc.png encontrada")
+    if os.path.exists(CAMINHO_WINVNC):
+        print("  ✅ winvnc.png encontrada em assets/")
+    elif os.path.exists("winvnc.png"):
+        print("  ✅ winvnc.png encontrada (na raiz)")
     else:
         print("  ⚠️ winvnc.png nao encontrada (so necessaria para avisos)")
     
     # Verifica a logo
-    if os.path.exists('logo.png'):
-        print("  ✅ logo.png encontrada")
+    if os.path.exists(CAMINHO_LOGO):
+        print("  ✅ logo.png encontrada em assets/")
+    elif os.path.exists("logo.png"):
+        print("  ✅ logo.png encontrada (na raiz)")
     else:
         print("  ❌ logo.png nao encontrada!")
     
-    print()  # Linha em branco para espaçamento
+    print()

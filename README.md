@@ -6,10 +6,15 @@
 
 ## 🖥️ **Demonstração**
 
-![Tela principal do Gerador de E-mails](./app.png)
+<div align="center">
 
-Interface gráfica amigável do Gerador de E-mails
+| Modo Claro | Modo Escuro |
+|:----------:|:-----------:|
+| ![Tela modo claro](./docs/screenshots/tela_claro.png) | ![Tela modo escuro](./docs/screenshots/tela_escuro.png) |
 
+*Interface gráfica do Gerador de E-mails - Modo claro (esquerda) e Modo escuro (direita)*
+
+</div>
 ---
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
