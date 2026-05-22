@@ -122,12 +122,12 @@ O projeto segue uma arquitetura modular e organizada por responsabilidades:
 ```
 gerador-email-hepta/
 │
-├── 🎯 **Arquivos Principais**
+├── 🎯 Arquivos Principais
 │   ├── 📄 main_gui.py           # Interface gráfica (Tkinter)
 │   ├── 📄 main.py               # Versão terminal
 │   └── 📄 gerador_completo.py   # Versão unificada
 │
-├── 🧩 **Módulos do Sistema**
+├── 🧩 Módulos do Sistema
 │   ├── 📄 utils.py              # Funções utilitárias
 │   ├── 📄 telefones.py          # Formatação de telefones
 │   ├── 📄 imagens.py            # Manipulação de imagens (base64)
@@ -142,23 +142,23 @@ gerador-email-hepta/
 │   ├── 📄 widgets.py            # Widgets da interface
 │   └── 📄 widget_helpers.py     # Helpers para widgets
 │
-├── 🖼️ **Assets**
+├── 🖼️ Assets
 │   ├── 🖼️ winvnc.png            # Imagem da janela do WinVNC
 │   └── 🖼️ logo.png              # Logo da empresa Hepta
 │
-├── 📸 **Screenshots**
+├── 📸 Screenshots
 │   ├── 🖼️ tela_claro.png        # Captura do modo claro
 │   └── 🖼️ tela_escuro.png       # Captura do modo escuro
 │
-├── 🧪 **Testes**
+├── 🧪 Testes
 │   └── 📁 tests/                # 74 testes unitários
 │
-├── 🔧 **Configurações**
+├── 🔧 Configurações
 │   ├── 📄 .gitignore            # Arquivos ignorados pelo Git
 │   ├── 📄 LICENSE               # Licença MIT
 │   └── 📄 pytest.ini            # Configuração do pytest
 │
-└── 📚 **Documentação**
+└── 📚 Documentação
     └── 📄 README.md             # Documentação do projeto
 ```
 
