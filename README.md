@@ -131,17 +131,32 @@ gerador-email-hepta/
 │   ├── 📄 utils.py              # Funções utilitárias
 │   ├── 📄 telefones.py          # Formatação de telefones
 │   ├── 📄 imagens.py            # Manipulação de imagens (base64)
-│   ├── 📄 email_aviso.py        # Geração do e-mail de aviso
-│   └── 📄 email_fechamento.py   # Geração do e-mail de fechamento
+│   ├── 📄 email_html.py         # Geração HTML dos e-mails
+│   ├── 📄 email_aviso.py        # Wrapper do e-mail de aviso
+│   ├── 📄 email_fechamento.py   # Wrapper do e-mail de fechamento
+│   ├── 📄 eventos.py            # Eventos da interface
+│   ├── 📄 geracao_email.py      # Geração e salvamento
+│   ├── 📄 atualizacao.py        # Auto-update
+│   ├── 📄 temas.py              # Cores dos temas
+│   ├── 📄 tema_manager.py       # Gerenciador de temas
+│   ├── 📄 widgets.py            # Widgets da interface
+│   └── 📄 widget_helpers.py     # Helpers para widgets
 │
 ├── 🖼️ **Assets**
 │   ├── 🖼️ winvnc.png            # Imagem da janela do WinVNC
-│   ├── 🖼️ logo.png              # Logo da empresa Hepta
-│   └── 🖼️ app.png               # Screenshot da interface (para o README)
+│   └── 🖼️ logo.png              # Logo da empresa Hepta
+│
+├── 📸 **Screenshots**
+│   ├── 🖼️ tela_claro.png        # Captura do modo claro
+│   └── 🖼️ tela_escuro.png       # Captura do modo escuro
+│
+├── 🧪 **Testes**
+│   └── 📁 tests/                # 74 testes unitários
 │
 ├── 🔧 **Configurações**
 │   ├── 📄 .gitignore            # Arquivos ignorados pelo Git
-│   └── 📄 LICENSE               # Licença MIT
+│   ├── 📄 LICENSE               # Licença MIT
+│   └── 📄 pytest.ini            # Configuração do pytest
 │
 └── 📚 **Documentação**
     └── 📄 README.md             # Documentação do projeto
