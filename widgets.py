@@ -2,254 +2,233 @@
 """
 MÓDULO DE CRIAÇÃO DE WIDGETS
 ================================================================================
-Funções para criar todos os elementos da interface gráfica.
-
-Versão com scroll vertical, redimensionamento e fundo escuro consistente
+Interface com layout desktop (toolbar + status) e CustomTkinter.
 """
 
 import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 from config import VERSAO_ATUAL
 from widget_helpers import (
-    criar_label_frame, criar_linha_entrada_com_exemplo,
-    criar_linha_entrada_telefone, criar_linha_horario, criar_botao_remover
+    criar_secao,
+    criar_linha_entrada,
+    criar_linha_entrada_telefone,
+    criar_linha_horario,
+    criar_botao_toolbar,
 )
+from lista_telefones import criar_lista_telefones, atualizar_lista_telefones
+
+MAPA_TIPO_PARA_VALOR = {
+    "1º Aviso": "1",
+    "2º Aviso": "2",
+    "3º Aviso": "3",
+    "Fechamento": "4",
+}
+
+MAPA_VALOR_PARA_TIPO = {v: k for k, v in MAPA_TIPO_PARA_VALOR.items()}
 
 
 def criar_widgets(gui, tema_manager, funcoes):
-    """
-    Cria todos os elementos da interface gráfica.
-    Versão com scroll vertical, redimensionamento e fundo escuro consistente.
-    """
-    
-    # ====================================================================
-    # FRAME PRINCIPAL COM SCROLL VERTICAL
-    # ====================================================================
-    # Canvas para suportar scroll (sem cor fixa - será controlada pelo tema)
-    gui.canvas = tk.Canvas(gui.janela, highlightthickness=0)
-    scrollbar = ttk.Scrollbar(gui.janela, orient="vertical", command=gui.canvas.yview)
-    
-    # Frame que vai conter todos os widgets (dentro do canvas) - sem cor fixa
-    gui.scrollable_frame = tk.Frame(gui.canvas)
-    
-    # Registrar canvas e scrollable_frame no tema para terem fundo escuro
-    tema_manager.registrar_widget(gui.canvas, 'canvas')
-    tema_manager.registrar_widget(gui.scrollable_frame, 'frame')
-    
-    # Configurar o frame para atualizar o scroll quando o tamanho mudar
-    gui.scrollable_frame.bind(
-        "<Configure>",
-        lambda e: gui.canvas.configure(scrollregion=gui.canvas.bbox("all"))
+    """Cria todos os elementos da interface gráfica."""
+
+    gui.frame_root = ctk.CTkFrame(gui.janela, fg_color="transparent")
+    gui.frame_root.pack(fill="both", expand=True, padx=12, pady=10)
+    gui.frame_root.grid_columnconfigure(0, weight=1)
+    gui.frame_root.grid_rowconfigure(2, weight=1)
+    tema_manager.registrar_widget(gui.frame_root, "ctk_frame_transparent")
+
+    _criar_cabecalho(gui, tema_manager, funcoes)
+    _criar_toolbar(gui, tema_manager, funcoes)
+    _criar_conteudo(gui, tema_manager, funcoes)
+    _criar_status_bar(gui, tema_manager)
+
+    gui.atualizar_lista_telefones = lambda: atualizar_lista_telefones(gui, tema_manager)
+
+
+def _criar_cabecalho(gui, tema_manager, funcoes):
+    gui.frame_header = ctk.CTkFrame(gui.frame_root, fg_color="transparent")
+    gui.frame_header.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+    gui.frame_header.grid_columnconfigure(0, weight=1)
+    tema_manager.registrar_widget(gui.frame_header, "ctk_frame_transparent")
+
+    titulo = ctk.CTkLabel(
+        gui.frame_header,
+        text="Gerador de E-mails — Suporte Hepta",
+        font=("Arial", 18, "bold"),
+        anchor="w",
     )
-    
-    # Criar janela dentro do canvas
-    gui.canvas.create_window((0, 0), window=gui.scrollable_frame, anchor="nw")
-    
-    # Conectar scrollbar ao canvas
-    gui.canvas.configure(yscrollcommand=scrollbar.set)
-    
-    # Layout do canvas e scrollbar
-    gui.canvas.pack(side="left", fill="both", expand=True)
-    scrollbar.pack(side="right", fill="y")
-    
-    # ====================================================================
-    # CABEÇALHO
-    # ====================================================================
-    gui.frame_header = tk.Frame(gui.scrollable_frame, bg='#f0f0f0')
-    gui.frame_header.pack(fill=tk.X, pady=(15,10), padx=20)
-    tema_manager.registrar_widget(gui.frame_header, 'header_frame')
-    
-    titulo = tk.Label(gui.frame_header, text="📧 GERADOR DE E-MAILS - SUPORTE HEPTA", 
-                     font=("Arial", 16, "bold"))
-    titulo.pack(side=tk.LEFT)
-    tema_manager.registrar_widget(titulo, 'header_label')
-    
-    # Botões do cabeçalho
-    frame_botoes_header = tk.Frame(gui.frame_header, bg='#f0f0f0')
-    frame_botoes_header.pack(side=tk.RIGHT)
-    tema_manager.registrar_widget(frame_botoes_header, 'header_frame')
-    
-    gui.btn_tema = tk.Button(frame_botoes_header, text="🌓 Tema", 
-                              command=lambda: funcoes['alternar_tema'](tema_manager),
-                              font=("Arial", 9), padx=12, pady=4)
-    gui.btn_tema.pack(side=tk.LEFT, padx=(0,5))
-    tema_manager.registrar_widget(gui.btn_tema, 'header_button')
-    
-    gui.btn_atualizar = tk.Button(frame_botoes_header, text="🔄 Update", 
-                                   command=funcoes['verificar_atualizacao'],
-                                   font=("Arial", 9), padx=12, pady=4)
-    gui.btn_atualizar.pack(side=tk.LEFT)
-    tema_manager.registrar_widget(gui.btn_atualizar, 'header_button')
-    
-    # ====================================================================
-    # STATUS
-    # ====================================================================
-    gui.status_label = tk.Label(gui.scrollable_frame, text="✅ Pronto para gerar e-mail", 
-                                  font=("Arial", 10), pady=5)
-    gui.status_label.pack(fill=tk.X, pady=(0,15), padx=20)
-    tema_manager.registrar_widget(gui.status_label, 'status_label')
-    
-    # Timer para mensagens temporárias
-    gui.timer_mensagem = None
-    
-    # ====================================================================
-    # 1ª ETAPA: NÚMERO DA REQUISIÇÃO
-    # ====================================================================
-    gui.frame_req = criar_label_frame(gui.scrollable_frame, "🔢 1ª Etapa -> NÚMERO DA REQUISIÇÃO", 
-                                       tema_manager)
-    gui.entry_req = criar_linha_entrada_com_exemplo(gui.frame_req, "REQ:", 35, 
-                                                     "Ex: 000008198188", 
-                                                     tema_manager)
-    
-    # ====================================================================
-    # 2ª ETAPA: TIPO DE E-MAIL (com feedback visual)
-    # ====================================================================
-    gui.frame_tipo = criar_label_frame(gui.scrollable_frame, "📧 2ª Etapa -> TIPO DE E-MAIL", 
-                                        tema_manager)
-    
-    frame_tipo_inner = tk.Frame(gui.frame_tipo)
-    frame_tipo_inner.pack()
-    tema_manager.registrar_widget(frame_tipo_inner, 'label')
-    
-    opcoes_tipo = [
-        ("📞 1º Aviso", "1"),
-        ("📞 2º Aviso", "2"),
-        ("📞 3º Aviso", "3"),
-        ("🔒 Fechamento", "4")
-    ]
-    
-    # Lista para armazenar radiobuttons
-    gui.radiobuttons = []
-    
-    def on_tipo_selected():
-        valor = gui.tipo_email.get()
-        textos = {"1": "1º Aviso", "2": "2º Aviso", "3": "3º Aviso", "4": "Fechamento"}
-        texto_opcao = textos.get(valor, "")
-        gui.feedback_label.config(text=f"✅ Opção escolhida: {texto_opcao}")
-        tema_manager.aplicar_tema()
-    
-    for texto, valor in opcoes_tipo:
-        rb = tk.Radiobutton(
-            frame_tipo_inner, 
-            text=texto, 
-            variable=gui.tipo_email, 
-            value=valor, 
-            font=("Arial", 10),
-            command=on_tipo_selected,
-            indicatoron=1,
-            padx=5,
-            pady=2
-        )
-        rb.pack(side=tk.LEFT, padx=10)
-        gui.radiobuttons.append(rb)
-        tema_manager.registrar_widget(rb, 'radiobutton')
-    
-    gui.feedback_label = tk.Label(gui.frame_tipo, 
-                                   text="✅ Opção escolhida: 1º Aviso", 
-                                   font=("Arial", 9, "bold"),
-                                   pady=5)
-    gui.feedback_label.pack()
-    tema_manager.registrar_widget(gui.feedback_label, 'feedback_label')
-    
-    # ====================================================================
-    # 3ª ETAPA: TELEFONES
-    # ====================================================================
-    gui.frame_telefones = criar_label_frame(gui.scrollable_frame, "📱 3ª Etapa -> TELEFONES", 
-                                             tema_manager)
-    
-    # Linha de entrada de telefone
+    titulo.grid(row=0, column=0, sticky="w")
+    tema_manager.registrar_widget(titulo, "ctk_label_header")
+
+    frame_acoes = ctk.CTkFrame(gui.frame_header, fg_color="transparent")
+    frame_acoes.grid(row=0, column=1, sticky="e")
+    tema_manager.registrar_widget(frame_acoes, "ctk_frame_transparent")
+
+    gui.btn_tema = ctk.CTkButton(
+        frame_acoes,
+        text="Tema",
+        width=90,
+        command=lambda: funcoes["alternar_tema"](tema_manager),
+        font=("Arial", 10),
+        corner_radius=8,
+    )
+    gui.btn_tema.pack(side="left", padx=(0, 6))
+    tema_manager.registrar_widget(gui.btn_tema, "ctk_button", "tema")
+
+    gui.btn_atualizar = ctk.CTkButton(
+        frame_acoes,
+        text="Update",
+        width=90,
+        command=funcoes["verificar_atualizacao"],
+        font=("Arial", 10),
+        corner_radius=8,
+    )
+    gui.btn_atualizar.pack(side="left")
+    tema_manager.registrar_widget(gui.btn_atualizar, "ctk_button", "update")
+
+
+def _criar_toolbar(gui, tema_manager, funcoes):
+    gui.frame_toolbar = ctk.CTkFrame(gui.frame_root, fg_color="transparent")
+    gui.frame_toolbar.grid(row=1, column=0, sticky="ew", pady=(0, 10))
+    tema_manager.registrar_widget(gui.frame_toolbar, "ctk_frame_transparent")
+
+    criar_botao_toolbar(
+        gui.frame_toolbar, "Gerar e-mail", funcoes["gerar_email"], tema_manager, "gerar"
+    )
+    criar_botao_toolbar(
+        gui.frame_toolbar, "Limpar listas", funcoes["limpar_listas"], tema_manager, "limpar"
+    )
+    criar_botao_toolbar(
+        gui.frame_toolbar, "Novo e-mail", funcoes["limpar_tudo"], tema_manager, "novo"
+    )
+
+
+def _criar_conteudo(gui, tema_manager, funcoes):
+    gui.frame_conteudo = ctk.CTkScrollableFrame(gui.frame_root, fg_color="transparent")
+    gui.frame_conteudo.grid(row=2, column=0, sticky="nsew")
+    tema_manager.registrar_widget(gui.frame_conteudo, "ctk_frame_transparent")
+
+    # Requisição
+    sec_req = criar_secao(gui.frame_conteudo, "Requisição", tema_manager)
+    gui.entry_req = criar_linha_entrada(sec_req, "REQ:", "Ex: 000008198188", tema_manager)
+
+    # Tipo de e-mail
+    sec_tipo = criar_secao(gui.frame_conteudo, "Tipo de e-mail", tema_manager)
+
+    def on_tipo_change(valor_label):
+        gui.tipo_email.set(MAPA_TIPO_PARA_VALOR[valor_label])
+        gui.feedback_label.configure(text=f"Opção escolhida: {valor_label}")
+        tema_manager.atualizar_segmented(gui.seg_tipo)
+
+    gui.seg_tipo = ctk.CTkSegmentedButton(
+        sec_tipo,
+        values=list(MAPA_TIPO_PARA_VALOR.keys()),
+        command=on_tipo_change,
+        font=("Arial", 10),
+        corner_radius=8,
+    )
+    gui.seg_tipo.set("1º Aviso")
+    gui.seg_tipo.pack(fill="x", pady=(0, 6))
+    tema_manager.registrar_widget(gui.seg_tipo, "ctk_segmented")
+
+    gui.feedback_label = ctk.CTkLabel(
+        sec_tipo,
+        text="Opção escolhida: 1º Aviso",
+        font=("Arial", 10),
+        anchor="w",
+    )
+    gui.feedback_label.pack(fill="x")
+    tema_manager.registrar_widget(gui.feedback_label, "ctk_label_feedback")
+
+    # Telefones
+    sec_tel = criar_secao(gui.frame_conteudo, "Telefones", tema_manager)
     gui.entry_telefone, gui.btn_add_cel, gui.btn_add_fixo = criar_linha_entrada_telefone(
-        gui.frame_telefones, tema_manager, funcoes)
-    
-    # Label da lista
-    label_lista = tk.Label(gui.frame_telefones, text="Telefones adicionados:", font=("Arial", 9))
-    label_lista.pack(anchor=tk.W)
-    tema_manager.registrar_widget(label_lista, 'label')
-    
-    # Listbox - com expand=True para redimensionar
-    gui.lista_telefones = tk.Listbox(gui.frame_telefones, height=5, font=("Arial", 10))
-    gui.lista_telefones.pack(fill=tk.BOTH, expand=True, pady=5)
-    tema_manager.registrar_widget(gui.lista_telefones, 'listbox')
-    
-    # Botão remover
-    gui.btn_remover = criar_botao_remover(gui.frame_telefones, "❌ Remover Selecionado", 
-                                           funcoes['remover_telefone'], tema_manager)
-    
-    # ====================================================================
-    # 4ª ETAPA: HORÁRIO DO CONTATO
-    # ====================================================================
-    gui.frame_horario = criar_label_frame(gui.scrollable_frame, "⏰ 4ª Etapa -> HORÁRIO DO CONTATO", 
-                                           tema_manager)
-    gui.spin_hora, gui.spin_minuto = criar_linha_horario(gui.frame_horario, tema_manager)
-    
-    # ====================================================================
-    # 5ª ETAPA: NOME DO FUNCIONÁRIO
-    # ====================================================================
-    gui.frame_nome = criar_label_frame(gui.scrollable_frame, "✍️ 5ª Etapa -> NOME DO FUNCIONÁRIO", 
-                                        tema_manager)
-    gui.entry_nome = tk.Entry(gui.frame_nome, font=("Arial", 10))
-    gui.entry_nome.pack(fill=tk.X, expand=True)
+        sec_tel, tema_manager, funcoes
+    )
+
+    label_lista = ctk.CTkLabel(sec_tel, text="Telefones adicionados:", font=("Arial", 10), anchor="w")
+    label_lista.pack(fill="x", pady=(6, 2))
+    tema_manager.registrar_widget(label_lista, "ctk_label")
+
+    criar_lista_telefones(gui, sec_tel, tema_manager)
+
+    gui.btn_remover = ctk.CTkButton(
+        sec_tel,
+        text="Remover selecionado",
+        command=funcoes["remover_telefone"],
+        font=("Arial", 10, "bold"),
+        height=30,
+        corner_radius=8,
+    )
+    gui.btn_remover.pack(fill="x", pady=(6, 0))
+    tema_manager.registrar_widget(gui.btn_remover, "ctk_button", "remover")
+
+    # Horário e funcionário (empilhados — melhor em notebook)
+    sec_horario = criar_secao(gui.frame_conteudo, "Horário do contato", tema_manager)
+    gui.spin_hora, gui.spin_minuto = criar_linha_horario(sec_horario, tema_manager)
+
+    sec_nome = criar_secao(gui.frame_conteudo, "Funcionário", tema_manager)
+    gui.entry_nome = ctk.CTkEntry(sec_nome, font=("Arial", 11))
+    gui.entry_nome.pack(fill="x")
     gui.entry_nome.insert(0, "Josué B. Almeida")
-    tema_manager.registrar_widget(gui.entry_nome, 'entry')
-    
-    # ====================================================================
-    # BOTÕES DE AÇÃO
-    # ====================================================================
-    gui.frame_botoes_acao = tk.Frame(gui.scrollable_frame)
-    gui.frame_botoes_acao.pack(fill=tk.X, pady=20, padx=20)
-    tema_manager.registrar_widget(gui.frame_botoes_acao, 'action_frame')
-    
-    gui.btn_gerar = tk.Button(gui.frame_botoes_acao, text="🚀 GERAR E-MAIL",
-                               command=funcoes['gerar_email'],
-                               font=("Arial", 10, "bold"), padx=20, pady=8)
-    gui.btn_gerar.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=8)
-    tema_manager.registrar_widget(gui.btn_gerar, 'action_button')
-    
-    gui.btn_limpar = tk.Button(gui.frame_botoes_acao, text="🗑️ LIMPAR LISTAS",
-                                command=funcoes['limpar_listas'],
-                                font=("Arial", 10, "bold"), padx=20, pady=8)
-    gui.btn_limpar.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=8)
-    tema_manager.registrar_widget(gui.btn_limpar, 'action_button')
-    
-    gui.btn_limpar_tudo = tk.Button(gui.frame_botoes_acao, text="✨ NOVO E-MAIL",
-                                     command=funcoes['limpar_tudo'],
-                                     font=("Arial", 10, "bold"), padx=20, pady=8)
-    gui.btn_limpar_tudo.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=8)
-    tema_manager.registrar_widget(gui.btn_limpar_tudo, 'action_button')
-    
-    # ====================================================================
-    # RODAPÉ
-    # ====================================================================
-    gui.frame_rodape = tk.Frame(gui.scrollable_frame)
-    gui.frame_rodape.pack(fill=tk.X, side=tk.BOTTOM, pady=(10,0), padx=20)
-    tema_manager.registrar_widget(gui.frame_rodape, 'rodape_frame')
-    
-    separador = tk.Frame(gui.frame_rodape, height=1)
-    separador.pack(fill=tk.X, pady=(8,8))
-    tema_manager.registrar_widget(separador, 'rodape_label')
-    
-    rodape_texto = tk.Label(gui.frame_rodape, 
-                            text="✨ Criado por: Josué B. Almeida ✨", 
-                            font=("Arial", 9, "bold"))
-    rodape_texto.pack(pady=(5,3))
-    tema_manager.registrar_widget(rodape_texto, 'rodape_label')
-    
-    frame_links = tk.Frame(gui.frame_rodape)
-    frame_links.pack(pady=(3,3))
-    tema_manager.registrar_widget(frame_links, 'rodape_frame')
-    
-    gui.github_link = tk.Label(frame_links, text="🐙 GitHub", font=("Arial", 8, "bold"), cursor="hand2")
-    gui.github_link.pack(side=tk.LEFT, padx=10)
-    tema_manager.registrar_widget(gui.github_link, 'rodape_link')
-    
-    sep = tk.Label(frame_links, text="|", font=("Arial", 8))
-    sep.pack(side=tk.LEFT)
-    tema_manager.registrar_widget(sep, 'rodape_label')
-    
-    gui.linkedin_link = tk.Label(frame_links, text="🔗 LinkedIn", font=("Arial", 8, "bold"), cursor="hand2")
-    gui.linkedin_link.pack(side=tk.LEFT, padx=10)
-    tema_manager.registrar_widget(gui.linkedin_link, 'rodape_link')
-    
-    versao_label = tk.Label(gui.frame_rodape, text=f"Versão {VERSAO_ATUAL} - Maio/2026", font=("Arial", 9, "bold"))
-    versao_label.pack(pady=(5,10))
-    tema_manager.registrar_widget(versao_label, 'rodape_label')
+    tema_manager.registrar_widget(gui.entry_nome, "ctk_entry")
+
+
+def _criar_status_bar(gui, tema_manager):
+    gui.frame_status = ctk.CTkFrame(gui.frame_root, corner_radius=0)
+    gui.frame_status.grid(row=3, column=0, sticky="ew", pady=(10, 0))
+    gui.frame_status.grid_columnconfigure(0, weight=1)
+    tema_manager.registrar_widget(gui.frame_status, "ctk_frame")
+
+    gui.status_label = ctk.CTkLabel(
+        gui.frame_status,
+        text="Pronto para gerar e-mail",
+        font=("Arial", 10),
+        anchor="w",
+    )
+    gui.status_label.grid(row=0, column=0, sticky="ew", padx=12, pady=(8, 2))
+    tema_manager.registrar_widget(gui.status_label, "ctk_label_status")
+
+    frame_rodape = ctk.CTkFrame(gui.frame_status, fg_color="transparent")
+    frame_rodape.grid(row=1, column=0, sticky="ew", padx=4, pady=(0, 8))
+    frame_rodape.grid_columnconfigure(0, weight=1)
+    frame_rodape.grid_columnconfigure(1, weight=0)
+    frame_rodape.grid_columnconfigure(2, weight=1)
+    tema_manager.registrar_widget(frame_rodape, "ctk_frame_transparent")
+
+    frame_centro = ctk.CTkFrame(frame_rodape, fg_color="transparent")
+    frame_centro.grid(row=0, column=1)
+    tema_manager.registrar_widget(frame_centro, "ctk_frame_transparent")
+
+    creditos_label = ctk.CTkLabel(
+        frame_centro,
+        text="Criado por: Josué B. Almeida",
+        font=("Arial", 9, "bold"),
+    )
+    creditos_label.pack(side="left", padx=(0, 10))
+    tema_manager.registrar_widget(creditos_label, "ctk_label_footer")
+
+    gui.github_link = ctk.CTkLabel(
+        frame_centro, text="GitHub", font=("Arial", 10, "bold"), cursor="hand2"
+    )
+    gui.github_link.pack(side="left", padx=6)
+    tema_manager.registrar_widget(gui.github_link, "ctk_label_link")
+
+    sep1 = ctk.CTkLabel(frame_centro, text="|", font=("Arial", 10))
+    sep1.pack(side="left")
+    tema_manager.registrar_widget(sep1, "ctk_label_footer")
+
+    gui.linkedin_link = ctk.CTkLabel(
+        frame_centro, text="LinkedIn", font=("Arial", 10, "bold"), cursor="hand2"
+    )
+    gui.linkedin_link.pack(side="left", padx=6)
+    tema_manager.registrar_widget(gui.linkedin_link, "ctk_label_link")
+
+    sep2 = ctk.CTkLabel(frame_centro, text="|", font=("Arial", 10))
+    sep2.pack(side="left", padx=(2, 6))
+    tema_manager.registrar_widget(sep2, "ctk_label_footer")
+
+    versao_label = ctk.CTkLabel(
+        frame_centro, text=f"v{VERSAO_ATUAL}", font=("Arial", 10, "bold")
+    )
+    versao_label.pack(side="left")
+    tema_manager.registrar_widget(versao_label, "ctk_label_footer")

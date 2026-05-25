@@ -37,7 +37,21 @@ CORES = {
         'button_novo_fg': 'white',
         'rodape_bg': '#e0e0e0',
         'rodape_fg': '#333333',
-        'rodape_link_fg': '#2196F3'
+        'rodape_link_fg': '#2196F3',
+        'list_row_bg': '#ffffff',
+        'list_row_selected_bg': '#e3f2fd',
+        'list_row_hover_bg': '#bbdefb',
+        'list_row_fg': '#333333',
+        'list_empty_fg': '#757575',
+        'list_scroll_bg': '#f5f5f5',
+        'status_ok': '#2e7d32',
+        'status_warning': '#ef6c00',
+        'status_info': '#1565c0',
+        'status_muted': '#616161',
+        'button_celular': '#4CAF50',
+        'button_fixo': '#FF9800',
+        'button_remover': '#f44336',
+        'section_title_fg': '#1976D2',
     },
     'escuro': {
         'bg': '#1e1e2e',
@@ -70,6 +84,37 @@ CORES = {
         'button_novo_fg': '#1e1e2e',
         'rodape_bg': '#11111b',
         'rodape_fg': '#a6adc8',
-        'rodape_link_fg': '#89b4fa'
+        'rodape_link_fg': '#89b4fa',
+        'list_row_bg': '#313244',
+        'list_row_selected_bg': '#45475a',
+        'list_row_hover_bg': '#585b70',
+        'list_row_fg': '#cdd6f4',
+        'list_empty_fg': '#6c7086',
+        'list_scroll_bg': '#181825',
+        'status_ok': '#a6e3a1',
+        'status_warning': '#fab387',
+        'status_info': '#89b4fa',
+        'status_muted': '#a6adc8',
+        'button_celular': '#a6e3a1',
+        'button_fixo': '#fab387',
+        'button_remover': '#f38ba8',
+        'section_title_fg': '#89b4fa',
     }
+}
+
+# Mapeamento de cores legadas (mensagens temporárias) para hex do tema
+COR_STATUS_CLARO = {
+    'green': '#2e7d32',
+    'orange': '#ef6c00',
+    'blue': '#1565c0',
+    'white': '#333333',
+    'black': '#333333',
+}
+
+COR_STATUS_ESCURO = {
+    'green': '#a6e3a1',
+    'orange': '#fab387',
+    'blue': '#89b4fa',
+    'white': '#cdd6f4',
+    'black': '#cdd6f4',
 }

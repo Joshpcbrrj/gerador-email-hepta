@@ -1,0 +1,5 @@
+reportlab>=4.5
+Pillow>=12.2
+pyinstaller>=6.20
+customtkinter>=5.2.0
+pytest>=8.0

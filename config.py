@@ -12,7 +12,7 @@ GitHub: https://github.com/Joshpcbrrj
 # VERSÃO DO PROGRAMA
 # ============================================================================
 # ATENÇÃO: Atualize este número a cada nova release no GitHub!
-VERSAO_ATUAL = "2.2"
+VERSAO_ATUAL = "2.4"
 
 # ============================================================================
 # CONFIGURAÇÕES DO GITHUB PARA AUTO-UPDATE

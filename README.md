@@ -25,7 +25,8 @@
 [![Tests](https://img.shields.io/badge/Tests-74%20passed-brightgreen)](tests/)
 [![Status](https://img.shields.io/badge/Status-Em%20Produção-brightgreen)](https://github.com/Joshpcbrrj/gerador-email-hepta)
 [![GitHub](https://img.shields.io/badge/GitHub-Repositório-181717?logo=github)](https://github.com/Joshpcbrrj/gerador-email-hepta)
-[![Release](https://img.shields.io/badge/Release-v2.3-blue)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
+[![CustomTkinter](https://img.shields.io/badge/CustomTkinter-5.2+-blue)](https://github.com/TomSchimansky/CustomTkinter)
+[![Release](https://img.shields.io/badge/Release-v2.4-blue)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
 
 ---
 
@@ -57,10 +58,11 @@
 
 ### 🎨 **Interface Moderna**
 
-- 📱 **Totalmente responsiva** - Janela redimensionável
-- 🎯 **Botões intuitivos** - Gerar, Limpar, Novo E-mail
-- 📋 **Área de preview** - Acompanhe o que foi gerado
-- 🌙 **Scroll suave** - Suporte a telas de qualquer tamanho
+- 🖥️ **Layout desktop** - Barra de ferramentas e status fixos; conteúdo rolável no centro
+- 🔘 **CustomTkinter** - Botões arredondados, campos e seleção de tipo com visual atualizado
+- 📋 **Lista de telefones (ListView)** - Linhas clicáveis, compacta (até 3 visíveis, scroll se houver mais)
+- 📱 **Otimizada para notebook** - Janela redimensionável (mín. 640×480), menos scroll desnecessário
+- 🌙 **Temas claro e escuro** - Alternância com leitura correta da opção selecionada no modo escuro
 
 ### 🚀 **Produtividade**
 
@@ -78,7 +80,8 @@
 | Tecnologia       | Versão | Finalidade                        |
 |------------------|--------|-----------------------------------|
 | **Python**       | 3.13   | Lógica principal do programa      |
-| **Tkinter**      | -      | Interface gráfica nativa          |
+| **Tkinter**      | -      | Base da interface gráfica       |
+| **CustomTkinter**| 5.2+   | Widgets modernos (botões, tema) |
 | **HTML5/CSS3**   | -      | Formatação dos e-mails            |
 
 ### Bibliotecas Específicas
@@ -105,7 +108,7 @@
 | Métrica            | Status                                    |
 |--------------------|-------------------------------------------|
 | 🟢 **Build**       | Sucesso                                   |
-| 🟢 **Executável**  | Versão 2.3                                |
+| 🟢 **Executável**  | Versão 2.4                                |
 | 🟢 **Interface**   | 100% funcional                            |
 | 🟢 **Responsivo**  | ✅ Janela redimensionável                 |
 | 🟢 **Portável**    | ✅ Único arquivo .exe                     |
@@ -123,7 +126,9 @@ O projeto segue uma arquitetura modular e organizada por responsabilidades:
 gerador-email-hepta/
 │
 ├── 🎯 Arquivos Principais
-│   ├── 📄 main_gui.py           # Interface gráfica (Tkinter)
+│   ├── 📄 main_gui.py           # Interface gráfica (CustomTkinter)
+│   ├── 📄 lista_telefones.py    # Lista de telefones (ListView)
+│   ├── 📄 requirements.txt      # Dependências do projeto
 │   ├── 📄 main.py               # Versão terminal
 │   └── 📄 gerador_completo.py   # Versão unificada
 │
@@ -211,7 +216,7 @@ cd gerador-email-hepta
 #### 2️⃣ **Instale as dependências**
 
 ```bash
-pip install reportlab pillow pyinstaller
+pip install -r requirements.txt
 ```
 
 ⏱️ Este processo pode levar alguns minutos na primeira vez.
@@ -248,7 +253,7 @@ python gerador_completo.py
 
 #### **Opção 2 - Compilar você mesmo**
 ```bash
-pyinstaller -F --noconsole --name "GeradorEmailHepta" --add-data "winvnc.png;." --add-data "logo.png;." main_gui.py
+pyinstaller GeradorEmailHepta.spec
 ```
 
 </details>
@@ -259,8 +264,8 @@ pyinstaller -F --noconsole --name "GeradorEmailHepta" --add-data "winvnc.png;." 
 |---------|-----------|
 | `python main_gui.py` | Executa a versão com interface gráfica |
 | `python main.py` | Executa a versão de terminal |
-| `pip install reportlab pillow pyinstaller` | Instala as dependências |
-| `pyinstaller -F --noconsole --name "GeradorEmailHepta" --add-data "winvnc.png;." --add-data "logo.png;." main_gui.py` | Gera o executável |
+| `pip install -r requirements.txt` | Instala as dependências |
+| `pyinstaller GeradorEmailHepta.spec` | Gera o executável |
 
 ### 🐛 **Solução de Problemas Comuns**
 
@@ -277,12 +282,12 @@ pyinstaller -F --noconsole --name "GeradorEmailHepta" --add-data "winvnc.png;." 
 - **Problema:** Bibliotecas não instaladas
 - **Solução:**
   ```bash
-  pip install reportlab pillow pyinstaller
+  pip install -r requirements.txt
   ```
 
 #### **Imagens não aparecem no e-mail**
-- **Problema:** Arquivos `winvnc.png` e `logo.png` não encontrados
-- **Solução:** Coloque as imagens na mesma pasta do executável
+- **Problema:** Pasta `assets/` sem `winvnc.png` e `logo.png`
+- **Solução:** Mantenha as imagens em `assets/` antes de gerar o `.exe` (o `GeradorEmailHepta.spec` já as embute)
 
 #### **Erro ao gerar executável**
 - **Problema:** PyInstaller com conflitos
@@ -375,6 +380,18 @@ Preencha os dados, clique em "Gerar E-mail" e o navegador abrirá com o e-mail f
 ---
 
 ## 📋 **Changelog**
+
+### Versão 2.4 (Maio/2026)
+
+- ✨ **Novidade:** Interface redesenhada com **CustomTkinter** (botões arredondados, visual moderno)
+- ✨ **Novidade:** Layout tipo aplicativo desktop — toolbar fixa (Gerar, Limpar, Novo) e barra de status
+- ✨ **Novidade:** Lista de telefones em **ListView** (linhas clicáveis) substituindo o `Listbox`
+- ✨ **Novidade:** Seleção de tipo de e-mail com botões segmentados; hora/minuto com combos
+- 🎨 **Interface:** Lista de telefones compacta (altura dinâmica; até 3 linhas visíveis, scroll além disso)
+- 🎨 **Interface:** Rodapé com créditos **"Criado por: Josué B. Almeida"** centralizados junto a GitHub e LinkedIn
+- 🐛 **Correção:** Texto legível na opção selecionada do tipo de e-mail no **modo escuro**
+- 📦 **Dependências:** `requirements.txt` com `customtkinter`; build do `.exe` com `--collect-all customtkinter`
+- 📱 **UX:** Janela inicial 960×640, mínimo 640×480 — melhor uso em notebooks
 
 ### Versão 2.3 (Maio/2026)
 

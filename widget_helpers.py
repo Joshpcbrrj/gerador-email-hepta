@@ -1,127 +1,135 @@
 # -*- coding: utf-8 -*-
 """
-FUNÇÕES AUXILIARES PARA CRIAÇÃO DE WIDGETS
+FUNÇÕES AUXILIARES PARA CRIAÇÃO DE WIDGETS (CUSTOMTKINTER)
 ================================================================================
-Funções reutilizáveis para criar elementos comuns da interface.
-
-Versão com redimensionamento - sem larguras fixas
 """
 
-import tkinter as tk
+import customtkinter as ctk
 
 
-def criar_label_frame(parent, texto, tema_manager):
-    """
-    Cria um LabelFrame padronizado.
-    """
-    frame = tk.LabelFrame(parent, text=texto, font=("Arial", 10, "bold"), padx=15, pady=10)
-    frame.pack(fill=tk.X, pady=8, padx=20)
-    tema_manager.registrar_widget(frame, 'frame')
-    return frame
+def criar_secao(parent, titulo, tema_manager):
+    """Cria um bloco de seção com título."""
+    frame = ctk.CTkFrame(parent, fg_color="transparent")
+    frame.pack(fill="x", pady=(0, 8))
+    tema_manager.registrar_widget(frame, "ctk_frame_transparent")
+
+    label_titulo = ctk.CTkLabel(
+        frame,
+        text=titulo,
+        font=("Arial", 11, "bold"),
+        anchor="w",
+    )
+    label_titulo.pack(fill="x", pady=(0, 6))
+    tema_manager.registrar_widget(label_titulo, "ctk_label_section")
+
+    conteudo = ctk.CTkFrame(frame, corner_radius=10)
+    conteudo.pack(fill="x")
+    tema_manager.registrar_widget(conteudo, "ctk_section")
+
+    return conteudo
 
 
-def criar_linha_entrada_com_exemplo(parent, label_text, entry_width, exemplo_texto, tema_manager):
-    """
-    Cria uma linha com label, entry e texto de exemplo.
-    entry_width não é mais usado, mantido para compatibilidade
-    """
-    frame = tk.Frame(parent)
-    frame.pack(fill=tk.X, pady=5)
-    tema_manager.registrar_widget(frame, 'label')
-    
-    label = tk.Label(frame, text=label_text, font=("Arial", 10))
-    label.pack(side=tk.LEFT)
-    tema_manager.registrar_widget(label, 'label')
-    
-    # Entry sem largura fixa - expande com a janela
-    entry = tk.Entry(frame, font=("Arial", 10))
-    entry.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
-    tema_manager.registrar_widget(entry, 'entry')
-    
-    label_exemplo = tk.Label(frame, text=exemplo_texto, font=("Arial", 9))
-    label_exemplo.pack(side=tk.LEFT, padx=(5,0))
-    tema_manager.registrar_widget(label_exemplo, 'label')
-    
+def criar_linha_entrada(parent, label_text, placeholder, tema_manager):
+    """Linha com rótulo e CTkEntry."""
+    frame = ctk.CTkFrame(parent, fg_color="transparent")
+    frame.pack(fill="x", pady=5)
+    tema_manager.registrar_widget(frame, "ctk_frame_transparent")
+
+    label = ctk.CTkLabel(frame, text=label_text, font=("Arial", 10))
+    label.pack(side="left", padx=(0, 8))
+    tema_manager.registrar_widget(label, "ctk_label")
+
+    entry = ctk.CTkEntry(frame, font=("Arial", 11), placeholder_text=placeholder)
+    entry.pack(side="left", fill="x", expand=True)
+    tema_manager.registrar_widget(entry, "ctk_entry")
+
     return entry
 
 
 def criar_linha_entrada_telefone(parent, tema_manager, funcoes):
-    """
-    Cria a linha de entrada para telefone com botões Celular e Fixo.
-    """
-    frame = tk.Frame(parent)
-    frame.pack(fill=tk.X, pady=5)
-    tema_manager.registrar_widget(frame, 'label')
-    
-    label = tk.Label(frame, text="Número:", font=("Arial", 10))
-    label.pack(side=tk.LEFT)
-    tema_manager.registrar_widget(label, 'label')
-    
-    # Entry sem largura fixa - expande com a janela
-    entry = tk.Entry(frame, font=("Arial", 10))
-    entry.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
-    tema_manager.registrar_widget(entry, 'entry')
-    entry.bind('<Return>', lambda e: funcoes['adicionar_celular']())
-    
-    btn_celular = tk.Button(frame, text="📱 Celular", 
-                            command=funcoes['adicionar_celular'],
-                            bg="#4CAF50", fg="white", font=("Arial", 9), padx=10, pady=3)
-    btn_celular.pack(side=tk.LEFT, padx=2)
-    tema_manager.registrar_widget(btn_celular, 'special_button')
-    
-    btn_fixo = tk.Button(frame, text="🏠 Fixo", 
-                         command=funcoes['adicionar_fixo'],
-                         bg="#FF9800", fg="white", font=("Arial", 9), padx=10, pady=3)
-    btn_fixo.pack(side=tk.LEFT, padx=2)
-    tema_manager.registrar_widget(btn_fixo, 'special_button')
-    
+    """Entrada de telefone com botões Celular e Fixo."""
+    frame = ctk.CTkFrame(parent, fg_color="transparent")
+    frame.pack(fill="x", pady=5)
+    tema_manager.registrar_widget(frame, "ctk_frame_transparent")
+
+    label = ctk.CTkLabel(frame, text="Número:", font=("Arial", 10))
+    label.pack(side="left", padx=(0, 8))
+    tema_manager.registrar_widget(label, "ctk_label")
+
+    entry = ctk.CTkEntry(frame, font=("Arial", 11), placeholder_text="Digite o número")
+    entry.pack(side="left", fill="x", expand=True, padx=(0, 6))
+    tema_manager.registrar_widget(entry, "ctk_entry")
+    entry.bind("<Return>", lambda e: funcoes["adicionar_celular"]())
+
+    btn_celular = ctk.CTkButton(
+        frame,
+        text="Celular",
+        width=88,
+        command=funcoes["adicionar_celular"],
+        font=("Arial", 10, "bold"),
+        corner_radius=8,
+    )
+    btn_celular.pack(side="left", padx=2)
+    tema_manager.registrar_widget(btn_celular, "ctk_button", "celular")
+
+    btn_fixo = ctk.CTkButton(
+        frame,
+        text="Fixo",
+        width=72,
+        command=funcoes["adicionar_fixo"],
+        font=("Arial", 10, "bold"),
+        corner_radius=8,
+    )
+    btn_fixo.pack(side="left", padx=2)
+    tema_manager.registrar_widget(btn_fixo, "ctk_button", "fixo")
+
     return entry, btn_celular, btn_fixo
 
 
 def criar_linha_horario(parent, tema_manager):
-    """
-    Cria a linha de entrada para hora e minutos.
-    """
-    frame = tk.Frame(parent)
-    frame.pack(fill=tk.X, pady=5)
-    tema_manager.registrar_widget(frame, 'label')
-    
-    # Frame interno para os dois campos lado a lado
-    inner_frame = tk.Frame(frame)
-    inner_frame.pack()
-    tema_manager.registrar_widget(inner_frame, 'label')
-    
-    # Hora
-    label_hora = tk.Label(inner_frame, text="Hora:", font=("Arial", 10))
-    label_hora.pack(side=tk.LEFT)
-    tema_manager.registrar_widget(label_hora, 'label')
-    
-    spin_hora = tk.Spinbox(inner_frame, from_=0, to=23, width=5, font=("Arial", 10))
-    spin_hora.pack(side=tk.LEFT, padx=5)
-    spin_hora.delete(0, tk.END)
-    spin_hora.insert(0, "14")
-    tema_manager.registrar_widget(spin_hora, 'spinbox')
-    
-    # Minutos
-    label_minutos = tk.Label(inner_frame, text="Minutos:", font=("Arial", 10))
-    label_minutos.pack(side=tk.LEFT, padx=(10,0))
-    tema_manager.registrar_widget(label_minutos, 'label')
-    
-    spin_minuto = tk.Spinbox(inner_frame, from_=0, to=59, width=5, font=("Arial", 10))
-    spin_minuto.pack(side=tk.LEFT, padx=5)
-    spin_minuto.delete(0, tk.END)
-    spin_minuto.insert(0, "00")
-    tema_manager.registrar_widget(spin_minuto, 'spinbox')
-    
+    """Combos de hora e minuto."""
+    frame = ctk.CTkFrame(parent, fg_color="transparent")
+    frame.pack(fill="x", pady=5)
+    tema_manager.registrar_widget(frame, "ctk_frame_transparent")
+
+    horas = [f"{h:02d}" for h in range(24)]
+    minutos = [f"{m:02d}" for m in range(60)]
+
+    label_hora = ctk.CTkLabel(frame, text="Hora:", font=("Arial", 10))
+    label_hora.pack(side="left", padx=(0, 6))
+    tema_manager.registrar_widget(label_hora, "ctk_label")
+
+    spin_hora = ctk.CTkComboBox(
+        frame, values=horas, width=72, font=("Arial", 11), state="readonly"
+    )
+    spin_hora.set("14")
+    spin_hora.pack(side="left", padx=(0, 12))
+    tema_manager.registrar_widget(spin_hora, "ctk_combobox")
+
+    label_min = ctk.CTkLabel(frame, text="Minutos:", font=("Arial", 10))
+    label_min.pack(side="left", padx=(0, 6))
+    tema_manager.registrar_widget(label_min, "ctk_label")
+
+    spin_minuto = ctk.CTkComboBox(
+        frame, values=minutos, width=72, font=("Arial", 11), state="readonly"
+    )
+    spin_minuto.set("00")
+    spin_minuto.pack(side="left")
+    tema_manager.registrar_widget(spin_minuto, "ctk_combobox")
+
     return spin_hora, spin_minuto
 
 
-def criar_botao_remover(parent, texto, comando, tema_manager):
-    """
-    Cria um botão de remover.
-    """
-    btn = tk.Button(parent, text=texto, command=comando,
-                    bg="#f44336", fg="white", font=("Arial", 9), padx=12, pady=3)
-    btn.pack(pady=5)
-    tema_manager.registrar_widget(btn, 'special_button')
+def criar_botao_toolbar(parent, texto, comando, tema_manager, papel):
+    """Botão da barra de ferramentas."""
+    btn = ctk.CTkButton(
+        parent,
+        text=texto,
+        command=comando,
+        font=("Arial", 11, "bold"),
+        height=36,
+        corner_radius=10,
+    )
+    btn.pack(side="left", expand=True, fill="x", padx=4)
+    tema_manager.registrar_widget(btn, "ctk_button", papel)
     return btn
