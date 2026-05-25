@@ -30,9 +30,18 @@ class GeradorEmailGUI:
         """Inicializa a janela principal"""
         self.janela = tk.Tk()
         self.janela.title("Gerador de E-mails - Suporte Hepta")
-        self.janela.geometry("1020x920")  # Aumentado para 1020x920
-        self.janela.resizable(False, False)
-        self.janela.minsize(950, 800)
+        
+        # ====================================================================
+        # CONFIGURAÇÕES DE TAMANHO E REDIMENSIONAMENTO
+        # ====================================================================
+        # Tamanho inicial (mais largo, menos alto para caber no notebook)
+        self.janela.geometry("1000x700")
+        
+        # PERMITIR redimensionamento pelo usuário (arrastar cantos)
+        self.janela.resizable(True, True)
+        
+        # Tamanho mínimo para não quebrar o layout
+        self.janela.minsize(700, 500)
         
         # Configurar limpeza ao fechar a janela
         self.janela.protocol("WM_DELETE_WINDOW", self.fechar_programa)
