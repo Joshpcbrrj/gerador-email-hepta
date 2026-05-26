@@ -162,9 +162,9 @@ def _criar_conteudo(gui, tema_manager, funcoes):
     gui.btn_remover.pack(fill="x", pady=(6, 0))
     tema_manager.registrar_widget(gui.btn_remover, "ctk_button", "remover")
 
-    # Horário e funcionário (empilhados — melhor em notebook)
-    sec_horario = criar_secao(gui.frame_conteudo, "Horário do contato", tema_manager)
-    gui.spin_hora, gui.spin_minuto = criar_linha_horario(sec_horario, tema_manager)
+    # Data, horário e funcionário (empilhados — melhor em notebook)
+    sec_horario = criar_secao(gui.frame_conteudo, "Data e horário do contato", tema_manager)
+    gui.spin_dia, gui.spin_mes, gui.spin_ano, gui.spin_hora, gui.spin_minuto = criar_linha_horario(sec_horario, tema_manager)
 
     sec_nome = criar_secao(gui.frame_conteudo, "Funcionário", tema_manager)
     gui.entry_nome = ctk.CTkEntry(sec_nome, font=("Arial", 11))

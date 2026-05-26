@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
 from email_html import gerar_email_aviso_html, gerar_email_fechamento_html
+from geracao_email import gerar_nota_improdutivo_html
 
 
 class TestEmailAviso:
@@ -168,3 +169,15 @@ class TestEmailFechamento:
             "21/05/2026 às 14:00 BRT"
         )
         assert "agradecemos" in html or "compreensão" in html
+
+
+def test_nota_improdutivo_html_contem_texto_basico():
+    html = gerar_nota_improdutivo_html("REQ123")
+    assert "IMPRODUTIVO" in html
+    assert "Foram realizadas 3 tentativas de contato" in html
+    assert "reabertura será considerada indevida" in html
+
+
+def test_nota_improdutivo_html_contem_titulo_fixo():
+    html = gerar_nota_improdutivo_html("REQ123")
+    assert "Nota de Chamado Improdutivo - E-mail fechamento chamado" in html

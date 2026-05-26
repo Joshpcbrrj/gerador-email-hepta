@@ -42,6 +42,57 @@ def limpar_pasta_temp():
             print(f"Erro ao limpar pasta temporária: {e}")
 
 
+def gerar_nota_improdutivo_html(num_req_completo):
+    """Gera o segundo HTML de nota improdutiva para e-mail de fechamento."""
+    nota_texto = (
+        "IMPRODUTIVO\n"
+        "Este chamado necessita de realização de contato direto com o usuário para autorização de procedimentos.\n"
+        "Foram realizadas 3 tentativas de contato sem sucesso no intervalo de 40 minutos a 1 hora entre elas.\n"
+        "Este chamado será fechado como improdutivo, e sua reabertura será considerada indevida.\n"
+        "Caso ainda necessite do suporte técnico, solicitamos que registre um novo chamado."
+    )
+
+    html_nota = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+    body {{
+        font-family: Arial, sans-serif;
+        font-size: 11pt;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+    }}
+    .container {{
+        max-width: 700px;
+        margin: 0 auto;
+    }}
+    .titulo {{
+        font-size: 14pt;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }}
+    .nota {{
+        white-space: pre-wrap;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 16px;
+        border-radius: 8px;
+    }}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="titulo">Nota de Chamado Improdutivo - E-mail fechamento chamado</div>
+    <div class="nota">{nota_texto}</div>
+</div>
+</body>
+</html>"""
+    return html_nota
+
+
 # ============================================================================
 # FUNÇÃO formatar_telefones FOI REMOVIDA DAQUI
 # Agora está em telefones.py e é importada acima
@@ -104,8 +155,12 @@ def gerar_email(gui, obter_telefones_func):
         num_req_completo = f"REQ{num_req}"
         num_req_num = num_req
     
-    # Data atual
-    data_atual = datetime.now().strftime("%d/%m/%Y")
+    # Data selecionada ou data atual como padrão
+    if hasattr(gui, 'spin_dia') and hasattr(gui, 'spin_mes') and hasattr(gui, 'spin_ano'):
+        data_atual = f"{gui.spin_dia.get().zfill(2)}/{gui.spin_mes.get().zfill(2)}/{gui.spin_ano.get()}"
+    else:
+        data_atual = datetime.now().strftime("%d/%m/%Y")
+
     hora = gui.spin_hora.get().zfill(2)
     minuto = gui.spin_minuto.get().zfill(2)
     
@@ -148,11 +203,19 @@ def gerar_email(gui, obter_telefones_func):
         # Salvar na pasta temporária
         with open(caminho_completo, 'w', encoding='utf-8') as f:
             f.write(html)
-        
-        # Abrir no navegador
-        webbrowser.open(f'file://{caminho_completo}')
-        
-        gui.atualizar_status(f"🌐 E-mail aberto no navegador! Pressione Ctrl+A, Ctrl+C, Ctrl+V para copiar.", "blue")
+
+        if tipo == '4':
+            nota_html = gerar_nota_improdutivo_html(num_req_completo)
+            nome_nota = f"nota_improdutivo_{num_req_num}.html"
+            caminho_nota = os.path.join(pasta_temp, nome_nota)
+            with open(caminho_nota, 'w', encoding='utf-8') as f_nota:
+                f_nota.write(nota_html)
+            gui.atualizar_status(f"🔒 E-mail de FECHAMENTO gerado e nota improdutivo salva em {nome_nota}", "blue")
+            webbrowser.open(f'file://{caminho_completo}')
+            webbrowser.open(f'file://{caminho_nota}')
+        else:
+            gui.atualizar_status(f"🌐 E-mail aberto no navegador! Pressione Ctrl+A, Ctrl+C, Ctrl+V para copiar.", "blue")
+            webbrowser.open(f'file://{caminho_completo}')
         
     except Exception as e:
         gui.atualizar_status(f"❌ Erro ao abrir e-mail: {str(e)}", "red")
