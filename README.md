@@ -14,8 +14,10 @@
 
 *Interface gráfica do Gerador de E-mails - Modo claro (esquerda) e Modo escuro (direita)*
 
-</div>
 ---
+
+</div>
+
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-11%20%7C%2010-0078D6?logo=windows)](https://www.microsoft.com/windows)
