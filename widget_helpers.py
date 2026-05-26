@@ -5,6 +5,7 @@ FUNÇÕES AUXILIARES PARA CRIAÇÃO DE WIDGETS (CUSTOMTKINTER)
 """
 
 import customtkinter as ctk
+from datetime import datetime
 
 
 def criar_secao(parent, titulo, tema_manager):
@@ -87,13 +88,50 @@ def criar_linha_entrada_telefone(parent, tema_manager, funcoes):
 
 
 def criar_linha_horario(parent, tema_manager):
-    """Combos de hora e minuto."""
+    """Combos de data, hora e minuto."""
     frame = ctk.CTkFrame(parent, fg_color="transparent")
     frame.pack(fill="x", pady=5)
     tema_manager.registrar_widget(frame, "ctk_frame_transparent")
 
+    hoje = datetime.now()
+    dias = [f"{d:02d}" for d in range(1, 32)]
+    meses = [f"{m:02d}" for m in range(1, 13)]
+    anos = [str(hoje.year), str(hoje.year + 1)]
     horas = [f"{h:02d}" for h in range(24)]
     minutos = [f"{m:02d}" for m in range(60)]
+
+    label_data = ctk.CTkLabel(frame, text="Data:", font=("Arial", 10))
+    label_data.pack(side="left", padx=(0, 6))
+    tema_manager.registrar_widget(label_data, "ctk_label")
+
+    spin_dia = ctk.CTkComboBox(
+        frame, values=dias, width=56, font=("Arial", 11), state="readonly"
+    )
+    spin_dia.set(f"{hoje.day:02d}")
+    spin_dia.pack(side="left", padx=(0, 6))
+    tema_manager.registrar_widget(spin_dia, "ctk_combobox")
+
+    label_mes = ctk.CTkLabel(frame, text="Mês:", font=("Arial", 10))
+    label_mes.pack(side="left", padx=(0, 6))
+    tema_manager.registrar_widget(label_mes, "ctk_label")
+
+    spin_mes = ctk.CTkComboBox(
+        frame, values=meses, width=56, font=("Arial", 11), state="readonly"
+    )
+    spin_mes.set(f"{hoje.month:02d}")
+    spin_mes.pack(side="left", padx=(0, 6))
+    tema_manager.registrar_widget(spin_mes, "ctk_combobox")
+
+    label_ano = ctk.CTkLabel(frame, text="Ano:", font=("Arial", 10))
+    label_ano.pack(side="left", padx=(0, 6))
+    tema_manager.registrar_widget(label_ano, "ctk_label")
+
+    spin_ano = ctk.CTkComboBox(
+        frame, values=anos, width=64, font=("Arial", 11), state="readonly"
+    )
+    spin_ano.set(str(hoje.year))
+    spin_ano.pack(side="left", padx=(0, 20))
+    tema_manager.registrar_widget(spin_ano, "ctk_combobox")
 
     label_hora = ctk.CTkLabel(frame, text="Hora:", font=("Arial", 10))
     label_hora.pack(side="left", padx=(0, 6))
@@ -102,7 +140,8 @@ def criar_linha_horario(parent, tema_manager):
     spin_hora = ctk.CTkComboBox(
         frame, values=horas, width=72, font=("Arial", 11), state="readonly"
     )
-    spin_hora.set("14")
+    agora = datetime.now()
+    spin_hora.set(f"{agora.hour:02d}")
     spin_hora.pack(side="left", padx=(0, 12))
     tema_manager.registrar_widget(spin_hora, "ctk_combobox")
 
@@ -113,11 +152,11 @@ def criar_linha_horario(parent, tema_manager):
     spin_minuto = ctk.CTkComboBox(
         frame, values=minutos, width=72, font=("Arial", 11), state="readonly"
     )
-    spin_minuto.set("00")
+    spin_minuto.set(f"{agora.minute:02d}")
     spin_minuto.pack(side="left")
     tema_manager.registrar_widget(spin_minuto, "ctk_combobox")
 
-    return spin_hora, spin_minuto
+    return spin_dia, spin_mes, spin_ano, spin_hora, spin_minuto
 
 
 def criar_botao_toolbar(parent, texto, comando, tema_manager, papel):

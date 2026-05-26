@@ -5,6 +5,7 @@ MÓDULO DE EVENTOS
 Funções de evento para a interface gráfica (adicionar, remover, limpar).
 """
 
+from datetime import datetime
 from tkinter import messagebox
 from telefones import formatar_celular, formatar_fixo
 from lista_telefones import (
@@ -89,8 +90,12 @@ def limpar_tudo(gui):
     gui.entry_telefone.delete(0, "end")
     gui.entry_nome.delete(0, "end")
     gui.entry_nome.insert(0, "Josué B. Almeida")
-    gui.spin_hora.set("14")
-    gui.spin_minuto.set("00")
+    hoje = datetime.now()
+    gui.spin_dia.set(f"{hoje.day:02d}")
+    gui.spin_mes.set(f"{hoje.month:02d}")
+    gui.spin_ano.set(str(hoje.year))
+    gui.spin_hora.set(f"{hoje.hour:02d}")
+    gui.spin_minuto.set(f"{hoje.minute:02d}")
     gui.tipo_email.set("1")
     gui.seg_tipo.set("1º Aviso")
     gui.tema_manager.atualizar_segmented(gui.seg_tipo)

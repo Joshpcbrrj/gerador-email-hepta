@@ -28,7 +28,7 @@
 [![Status](https://img.shields.io/badge/Status-Em%20Produção-brightgreen)](https://github.com/Joshpcbrrj/gerador-email-hepta)
 [![GitHub](https://img.shields.io/badge/GitHub-Repositório-181717?logo=github)](https://github.com/Joshpcbrrj/gerador-email-hepta)
 [![CustomTkinter](https://img.shields.io/badge/CustomTkinter-5.2+-blue)](https://github.com/TomSchimansky/CustomTkinter)
-[![Release](https://img.shields.io/badge/Release-v2.4-blue)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
+[![Release](https://img.shields.io/badge/Release-v2.5-blue)](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest)
 
 ---
 
@@ -110,7 +110,7 @@
 | Métrica            | Status                                    |
 |--------------------|-------------------------------------------|
 | 🟢 **Build**       | Sucesso                                   |
-| 🟢 **Executável**  | Versão 2.4                                |
+| 🟢 **Executável**  | Versão 2.5                                |
 | 🟢 **Interface**   | 100% funcional                            |
 | 🟢 **Responsivo**  | ✅ Janela redimensionável                 |
 | 🟢 **Portável**    | ✅ Único arquivo .exe                     |
@@ -383,17 +383,17 @@ Preencha os dados, clique em "Gerar E-mail" e o navegador abrirá com o e-mail f
 
 ## 📋 **Changelog**
 
+### Versão 2.5 (Maio/2026)
+
+- ✨ **Melhoria:** Nova nota `Nota de Chamado Improdutivo - E-mail fechamento chamado` para e-mail de fechamento improdutivo, abrindo dois HTMLs automáticos (e-mail + nota)
+- ✨ **Melhoria:** Data e hora agora são preenchidas automaticamente com o horário atual, mantendo a opção de ajuste manual
+- 📦 **Dependências:** `requirements.txt` com `customtkinter`; build do `.exe` com `--collect-all customtkinter`
+- 📱 **UX:** Janela inicial 960×640, mínimo 640×480 — melhor uso em notebooks
+
 ### Versão 2.4 (Maio/2026)
 
 - ✨ **Novidade:** Interface redesenhada com **CustomTkinter** (botões arredondados, visual moderno)
 - ✨ **Novidade:** Layout tipo aplicativo desktop — toolbar fixa (Gerar, Limpar, Novo) e barra de status
-- ✨ **Novidade:** Lista de telefones em **ListView** (linhas clicáveis) substituindo o `Listbox`
-- ✨ **Novidade:** Seleção de tipo de e-mail com botões segmentados; hora/minuto com combos
-- 🎨 **Interface:** Lista de telefones compacta (altura dinâmica; até 3 linhas visíveis, scroll além disso)
-- 🎨 **Interface:** Rodapé com créditos **"Criado por: Josué B. Almeida"** centralizados junto a GitHub e LinkedIn
-- 🐛 **Correção:** Texto legível na opção selecionada do tipo de e-mail no **modo escuro**
-- 📦 **Dependências:** `requirements.txt` com `customtkinter`; build do `.exe` com `--collect-all customtkinter`
-- 📱 **UX:** Janela inicial 960×640, mínimo 640×480 — melhor uso em notebooks
 
 ### Versão 2.3 (Maio/2026)
 
