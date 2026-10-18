@@ -1,4 +1,4 @@
-customtkinter>=5.2.0
-pyinstaller>=6.20
-pytest>=8.0
-ruff>=0.15
+customtkinter>=6.0.0
+pyinstaller>=6.22.3
+pytest>=9.1.1
+ruff>=0.17.0
