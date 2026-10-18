@@ -11,8 +11,8 @@ página — sem uma segunda barra de rolagem aninhada dentro do conteúdo.
 """
 
 import customtkinter as ctk
-from temas import cor, fonte
 
+from temas import cor, fonte
 
 MENSAGEM_VAZIA = "Nenhum telefone adicionado ainda."
 
@@ -29,7 +29,7 @@ def _limpar_emoji(texto):
     """Remove emoji inicial (📞 ou 🏠) do texto exibido."""
     for prefix in TIPOS:
         if texto.startswith(prefix):
-            return texto[len(prefix):].strip()
+            return texto[len(prefix) :].strip()
     return texto.strip()
 
 

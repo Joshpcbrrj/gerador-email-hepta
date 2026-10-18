@@ -7,15 +7,14 @@ Testa as funções de eventos (mock da interface).
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pytest
 from unittest.mock import MagicMock, patch
 from eventos import (
     mostrar_mensagem_temporaria,
     obter_todos_telefones,
     adicionar_celular,
-    adicionar_fixo,
     remover_telefone,
     limpar_listas,
 )
@@ -34,9 +33,7 @@ class TestMensagensTemporarias:
 
         mostrar_mensagem_temporaria(mock_gui, "Teste", "green")
 
-        mock_gui.status_label.configure.assert_called_once_with(
-            text="Teste", text_color="#2e7d32"
-        )
+        mock_gui.status_label.configure.assert_called_once_with(text="Teste", text_color="#2e7d32")
 
     def test_mensagem_cancela_timer_anterior(self):
         mock_gui = MagicMock()
@@ -127,7 +124,9 @@ class TestRemoverTelefone:
         mock_gui.status_label = MagicMock()
         mock_gui.tema_manager.cor_status.return_value = "#ef6c00"
 
-        with patch("eventos.remover_telefone_indice", return_value="📞 (11) 99999-9999") as mock_rem:
+        with patch(
+            "eventos.remover_telefone_indice", return_value="📞 (11) 99999-9999"
+        ) as mock_rem:
             remover_telefone(mock_gui, 1)
             mock_rem.assert_called_once_with(mock_gui, 1, mock_gui.tema_manager)
             mock_gui.status_label.configure.assert_called_once()

@@ -5,14 +5,16 @@ FUNÇÕES AUXILIARES PARA CRIAÇÃO DE WIDGETS (CUSTOMTKINTER)
 Componentes padronizados (cartões, campos, botões) com as cores do tema.
 """
 
-import customtkinter as ctk
 from datetime import datetime
-from temas import cor, fonte
 
+import customtkinter as ctk
+
+from temas import cor, fonte
 
 # ============================================================================
 # CARTÕES E TEXTOS
 # ============================================================================
+
 
 def criar_secao(parent, titulo, descricao=None):
     """
@@ -120,6 +122,7 @@ def aplicar_estilo_botao(botao, estilo):
 # TELEFONE
 # ============================================================================
 
+
 def criar_linha_entrada_telefone(parent, funcoes):
     """Entrada de telefone com botões Celular e Fixo."""
     frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -142,6 +145,7 @@ def criar_linha_entrada_telefone(parent, funcoes):
 # ============================================================================
 # DATA E HORA
 # ============================================================================
+
 
 def valores_ano(referencia=None):
     """Anos disponíveis: anterior, atual e próximo."""

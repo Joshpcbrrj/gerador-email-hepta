@@ -18,65 +18,89 @@ pip install -r requirements.txt
 python main.py
 ```
 
-## Testes
+## Qualidade: testes e lint
 
 ```bash
-python -m pytest
+python -m pytest        # testes
+ruff check .            # lint (erros e más práticas)
+ruff format .           # formatação automática
 ```
 
-Os testes também rodam automaticamente no GitHub a cada push na `main` e em cada pull request ([workflow](../.github/workflows/testes.yml)).
+A configuração do `ruff` fica no [`pyproject.toml`](../pyproject.toml). Os três comandos também rodam no GitHub a cada push na `main` e em cada pull request ([workflow de testes](../.github/workflows/testes.yml)).
+
+### Snapshots: o e-mail não pode mudar sem querer
+
+Os e-mails são copiados e colados no e-mail corporativo, então o HTML gerado precisa continuar idêntico. Os arquivos em [`tests/snapshots/`](../tests/snapshots/) guardam o resultado esperado de vários casos, e o [`test_snapshots.py`](../tests/test_snapshots.py) falha se qualquer caractere mudar. As imagens em base64 aparecem como `{{WINVNC_BASE64}}` e `{{LOGO_BASE64}}`.
+
+Se você alterar um texto **de propósito**, atualize os snapshots e revise a diferença antes do commit:
+
+```bash
+python tests/test_snapshots.py --atualizar
+git diff tests/snapshots
+```
 
 ## Estrutura
 
 | Módulo | Responsabilidade |
 | --- | --- |
-| `main.py` | Ponto de entrada |
-| `main_gui.py` | Janela principal: liga eventos, relógio da data/hora e verificação de atualizações |
+| `main.py` | Ponto de entrada (com `--autoteste`, só verifica modelos e imagens) |
+| `main_gui.py` | Janela principal: liga eventos, relógio da data/hora, atualizações, nome lembrado e erros inesperados |
 | `widgets.py` | Monta o layout (aviso, cabeçalho, ações, cartões, barra de status) |
 | `widget_helpers.py` | Componentes padronizados: cartão, campo, botão, combos de data/hora |
 | `lista_telefones.py` | Lista de telefones (estado e linhas com ✕) |
 | `eventos.py` | Ações dos botões (adicionar, remover, limpar) |
-| `geracao_email.py` | Valida o formulário, gera e abre os HTMLs na pasta temporária |
+| `geracao_email.py` | Regras (`validar_formulario`, `normalizar_req`, `montar_emails`) e ligação com a tela |
+| `email_html.py` | Preenche os modelos de `templates/` |
+| `templates/` | **Textos dos e-mails** (`aviso.html`, `fechamento.html`, `nota_improdutivo.html`) |
+| `tipo_email.py` | Os quatro tipos de e-mail (`TipoEmail`) e seus textos |
 | `data_hora.py` | Regra da data/hora do contato (automática ou manual) |
-| `email_html.py`, `email_aviso.py`, `email_fechamento.py` | Modelos HTML dos e-mails |
-| `imagens.py`, `utils.py` | Imagens em base64 e caminho dos recursos dentro do `.exe` |
 | `telefones.py` | Formatação de celular e fixo |
+| `imagens.py`, `utils.py` | Imagens em base64 e localização dos arquivos (inclusive dentro do `.exe`) |
 | `atualizacao.py` | Consulta a última release no GitHub e compara versões |
-| `temas.py` | Paleta clara/escura e fontes |
-| `tema_manager.py` | Troca de tema e preferência salva |
-| `config.py` | Versão atual e configurações |
+| `preferencias.py` | Tema e nome do funcionário salvos em `%APPDATA%\GeradorEmailHepta` |
+| `registro.py` | Log de erros em `%APPDATA%\GeradorEmailHepta\gerador.log` |
+| `temas.py`, `tema_manager.py` | Paleta clara/escura, fontes e troca de tema |
+| `config.py` | Versão atual, limites e configurações |
+| `autoteste.py` | Verificação do executável usada no workflow de release |
 | `assets/` | Logo e imagem do WinVNC usadas nos e-mails |
-| `tests/` | Testes automatizados (pytest) |
+
+### Alterar o texto de um e-mail
+
+Edite o arquivo em `templates/`. Os campos variáveis aparecem como `$titulo`, `$nome`, `$telefones`, `$data_hora`, `$num_req`, `$tentativa_texto`, `$imagem_winvnc` e `$imagem_logo`. Para escrever um `$` literal no texto, use `$$`. Depois, atualize os snapshots (seção anterior).
 
 ### Decisões importantes
 
 - **Cores dos temas:** todo widget recebe a cor como par `(claro, escuro)` através de `cor("nome")`, em `temas.py`. O CustomTkinter troca sozinho ao mudar o tema. Não pinte widgets manualmente na troca de tema; adicione a cor na paleta e use `cor()`.
 - **Data/hora:** no modo automático, o horário é lido no clique em gerar (`resolver_data_hora` em `data_hora.py`), nunca na abertura do programa.
 - **Textos de uma linha nos labels:** não ajuste `wraplength` dinamicamente em eventos `<Configure>`. A mudança de altura realimenta o redimensionamento e trava a janela.
+- **Texto digitado vai escapado no HTML** (`html.escape` em `email_html.py`), para que `<` ou `&` num nome não quebrem o e-mail.
+- **Erros:** use `logging` (`log = logging.getLogger(__name__)`), não `print()`. O executável não tem console.
 
-## Gerar o executável
+## Gerar o executável localmente
 
 ```bash
-pyinstaller --noconfirm --clean --onefile --windowed --name GeradorEmailHepta --collect-all customtkinter --add-data "assets;assets" main.py
+pyinstaller --noconfirm --clean --onefile --windowed --name GeradorEmailHepta --collect-all customtkinter --add-data "assets;assets" --add-data "templates;templates" main.py
+dist\GeradorEmailHepta.exe --autoteste
 ```
 
-O arquivo sai em `dist\GeradorEmailHepta.exe`. As pastas `build/` e `dist/` e o `.spec` gerado são ignorados pelo Git.
-
-Antes de publicar, abra o `.exe` e gere um e-mail de aviso para conferir se o logo e a imagem do WinVNC aparecem.
+O autoteste não abre janela: sai com código 0 se os modelos e as imagens estiverem dentro do `.exe` (confira com `echo %ERRORLEVEL%` no cmd ou `$LASTEXITCODE` no PowerShell). As pastas `build/` e `dist/` e o `.spec` gerado são ignorados pelo Git.
 
 ## Publicar uma nova versão
 
-O aviso de atualização dos usuários depende deste processo. Siga na ordem:
+A publicação é automática pelo [workflow de release](../.github/workflows/release.yml), disparado por uma tag:
 
 1. Atualize `VERSAO_ATUAL` em [`config.py`](../config.py) (ex: `"2.7"`).
-2. Registre as mudanças no [CHANGELOG](../CHANGELOG.md), na seção da nova versão.
-3. Rode `python -m pytest`.
-4. Faça o commit e o push na `main`.
-5. Gere o `.exe` (seção anterior).
-6. Crie a release com a tag `v` + versão, anexando o `.exe` e usando a seção do CHANGELOG como descrição:
+2. Registre as mudanças no [CHANGELOG](../CHANGELOG.md), numa seção `## [2.7] - AAAA-MM-DD`.
+3. Faça o commit e o push na `main`.
+4. Crie e envie a tag:
 
    ```bash
-   gh release create v2.7 dist/GeradorEmailHepta.exe --title "v2.7" --notes-file notas.md
+   git tag v2.7
+   git push origin v2.7
    ```
 
-> **Atenção:** a tag da release precisa ser maior que `VERSAO_ATUAL` das versões instaladas para elas exibirem o aviso. Se `VERSAO_ATUAL` não for atualizada no código, a própria versão nova vai oferecer atualização para ela mesma.
+O GitHub então confere se a tag bate com `VERSAO_ATUAL`, roda lint e testes, gera o `.exe`, roda o autoteste nele e publica a release com o `.exe` anexado e a seção do CHANGELOG como descrição. Se qualquer etapa falhar, nada é publicado. Acompanhe na aba **Actions** do repositório.
+
+Assim que a release aparece, os programas abertos nas máquinas da equipe mostram o aviso de atualização em até 4 horas (ou ao abrir).
+
+> **Atenção:** a versão da tag precisa ser maior que a das versões instaladas para elas exibirem o aviso. Se `VERSAO_ATUAL` não for atualizada no código, o workflow falha na primeira etapa.

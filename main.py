@@ -4,15 +4,22 @@
 PONTO DE ENTRADA - GERADOR DE E-MAILS HEPTA
 ================================================================================
 
-Arquivo principal para executar o programa.
-Redireciona para a interface gráfica.
+Abre a interface gráfica.
+Com --autoteste, apenas verifica modelos e imagens e sai (usado no build).
 
 Autor: Josué B. Almeida
 GitHub: https://github.com/Joshpcbrrj
 """
 
-from main_gui import GeradorEmailGUI
+import sys
 
 if __name__ == "__main__":
+    if "--autoteste" in sys.argv:
+        from autoteste import executar
+
+        sys.exit(executar())
+
+    from main_gui import GeradorEmailGUI
+
     app = GeradorEmailGUI()
     app.executar()

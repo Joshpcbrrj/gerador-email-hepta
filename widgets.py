@@ -9,40 +9,27 @@ Todas as cores são pares (claro, escuro) — a troca de tema é automática.
 """
 
 import tkinter as tk
+
 import customtkinter as ctk
-from config import VERSAO_ATUAL
+
+from config import MAX_TELEFONES, VERSAO_ATUAL
+from lista_telefones import criar_lista_telefones
 from temas import cor, fonte
+from tipo_email import TipoEmail
 from widget_helpers import (
-    criar_secao,
-    criar_label,
-    criar_campo,
-    criar_botao,
     aplicar_estilo_botao,
+    criar_botao,
+    criar_campo,
+    criar_label,
     criar_linha_entrada_telefone,
     criar_linha_horario,
+    criar_secao,
 )
-from lista_telefones import criar_lista_telefones
-
-MAPA_TIPO_PARA_VALOR = {
-    "1º Aviso": "1",
-    "2º Aviso": "2",
-    "3º Aviso": "3",
-    "Fechamento": "4",
-}
-
-MAPA_VALOR_PARA_TIPO = {v: k for k, v in MAPA_TIPO_PARA_VALOR.items()}
-
-DESCRICAO_TIPO = {
-    "1": "Primeira tentativa de contato sem sucesso.",
-    "2": "Segunda tentativa de contato sem sucesso.",
-    "3": "Terceira tentativa — último aviso antes do fechamento.",
-    "4": "Fecha como improdutivo e abre também a nota. Telefones não são obrigatórios.",
-}
 
 TEXTO_HORARIO_AUTOMATICO = "A data e a hora serão as do momento em que você clicar em Gerar e-mail."
-TEXTO_HORARIO_MANUAL = "Usando a data e a hora escolhidas acima. Ative a opção para voltar ao horário atual."
-
-MAX_TELEFONES = 10
+TEXTO_HORARIO_MANUAL = (
+    "Usando a data e a hora escolhidas acima. Ative a opção para voltar ao horário atual."
+)
 
 
 def criar_widgets(gui, tema_manager, funcoes):
@@ -68,6 +55,7 @@ def criar_widgets(gui, tema_manager, funcoes):
 # AVISO DE ATUALIZAÇÃO (oculto até existir versão nova)
 # ============================================================================
 
+
 def _criar_aviso_atualizacao(gui, funcoes):
     gui.frame_aviso = ctk.CTkFrame(
         gui.frame_root,
@@ -85,8 +73,12 @@ def _criar_aviso_atualizacao(gui, funcoes):
     gui.label_aviso.grid(row=0, column=0, sticky="ew", padx=(14, 8), pady=8)
 
     criar_botao(
-        gui.frame_aviso, "Baixar atualização", funcoes["baixar_atualizacao"],
-        estilo="primario", altura=30, tamanho=12,
+        gui.frame_aviso,
+        "Baixar atualização",
+        funcoes["baixar_atualizacao"],
+        estilo="primario",
+        altura=30,
+        tamanho=12,
     ).grid(row=0, column=1, padx=(0, 6), pady=8)
 
     ctk.CTkButton(
@@ -109,6 +101,7 @@ def _criar_aviso_atualizacao(gui, funcoes):
 # CABEÇALHO
 # ============================================================================
 
+
 def _criar_cabecalho(gui, tema_manager, funcoes):
     frame = ctk.CTkFrame(gui.frame_root, fg_color="transparent")
     frame.grid(row=1, column=0, sticky="ew", pady=(0, 12))
@@ -118,8 +111,11 @@ def _criar_cabecalho(gui, tema_manager, funcoes):
     titulos.grid(row=0, column=0, sticky="w")
     criar_label(titulos, "Gerador de E-mails", 22, "bold", anchor="w").pack(fill="x")
     criar_label(
-        titulos, "Suporte Hepta · avisos de tentativa de contato e fechamento",
-        12, muted=True, anchor="w",
+        titulos,
+        "Suporte Hepta · avisos de tentativa de contato e fechamento",
+        12,
+        muted=True,
+        anchor="w",
     ).pack(fill="x")
 
     acoes = ctk.CTkFrame(frame, fg_color="transparent")
@@ -146,6 +142,7 @@ def atualizar_texto_botao_tema(gui, tema_atual):
 # BARRA DE AÇÕES
 # ============================================================================
 
+
 def _criar_toolbar(gui, funcoes):
     frame = ctk.CTkFrame(gui.frame_root, fg_color="transparent")
     frame.grid(row=2, column=0, sticky="ew", pady=(0, 12))
@@ -153,8 +150,12 @@ def _criar_toolbar(gui, funcoes):
     frame.grid_columnconfigure((1, 2), weight=1, uniform="toolbar")
 
     gui.btn_gerar = criar_botao(
-        frame, "Gerar e-mail   (Ctrl+Enter)", funcoes["gerar_email"],
-        estilo="primario", altura=42, tamanho=14,
+        frame,
+        "Gerar e-mail   (Ctrl+Enter)",
+        funcoes["gerar_email"],
+        estilo="primario",
+        altura=42,
+        tamanho=14,
     )
     gui.btn_gerar.grid(row=0, column=0, sticky="ew", padx=(0, 8))
 
@@ -169,6 +170,7 @@ def _criar_toolbar(gui, funcoes):
 # ============================================================================
 # CONTEÚDO
 # ============================================================================
+
 
 def _criar_conteudo(gui, tema_manager, funcoes):
     gui.frame_conteudo = ctk.CTkScrollableFrame(
@@ -193,9 +195,9 @@ def _secao_chamado(gui):
     frame_req, gui.entry_req = criar_campo(sec, "Requisição (REQ)", "Ex: 000008198188")
     frame_req.grid(row=0, column=0, sticky="ew", padx=(0, 12))
 
-    frame_nome, gui.entry_nome = criar_campo(sec, "Funcionário")
+    frame_nome, gui.entry_nome = criar_campo(sec, "Funcionário", "Seu nome (assina o e-mail)")
     frame_nome.grid(row=0, column=1, sticky="ew")
-    gui.entry_nome.insert(0, "Josué B. Almeida")
+    gui.entry_nome.insert(0, gui.funcionario_salvo())
 
 
 def _secao_tipo(gui):
@@ -204,11 +206,13 @@ def _secao_tipo(gui):
     frame = ctk.CTkFrame(sec, fg_color="transparent")
     frame.pack(fill="x")
     gui.botoes_tipo = {}
-    for coluna, (rotulo, valor) in enumerate(MAPA_TIPO_PARA_VALOR.items()):
+    for coluna, tipo in enumerate(TipoEmail):
         frame.grid_columnconfigure(coluna, weight=1, uniform="tipo")
-        botao = criar_botao(frame, rotulo, lambda v=valor: gui.selecionar_tipo(v), altura=36)
+        botao = criar_botao(
+            frame, tipo.rotulo, lambda v=tipo.value: gui.selecionar_tipo(v), altura=36
+        )
         botao.grid(row=0, column=coluna, sticky="ew", padx=(0 if coluna == 0 else 6, 0))
-        gui.botoes_tipo[valor] = botao
+        gui.botoes_tipo[tipo.value] = botao
 
     # Textos curtos (uma linha). Não ajustar wraplength em <Configure>: a mudança de
     # altura realimenta o redimensionamento e trava a janela (visto ao trocar o tema).
@@ -219,7 +223,7 @@ def _secao_tipo(gui):
         gui.tipo_email.set(valor)
         for v, botao in gui.botoes_tipo.items():
             aplicar_estilo_botao(botao, "primario" if v == valor else "secundario")
-        gui.feedback_label.configure(text=DESCRICAO_TIPO[valor])
+        gui.feedback_label.configure(text=TipoEmail(valor).descricao)
 
     gui.selecionar_tipo = selecionar_tipo
     selecionar_tipo(gui.tipo_email.get())
@@ -276,6 +280,7 @@ def _secao_horario(gui, funcoes):
 # ============================================================================
 # BARRA DE STATUS
 # ============================================================================
+
 
 def _criar_status_bar(gui):
     gui.frame_status = ctk.CTkFrame(

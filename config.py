@@ -8,10 +8,13 @@ Autor: Josué B. Almeida
 GitHub: https://github.com/Joshpcbrrj
 """
 
+import os
+
 # ============================================================================
 # VERSÃO DO PROGRAMA
 # ============================================================================
-# ATENÇÃO: Atualize este número a cada nova release no GitHub!
+# ATENÇÃO: atualize a cada nova release (veja docs/DESENVOLVIMENTO.md).
+# O workflow de release falha se a tag não bater com este valor.
 VERSAO_ATUAL = "2.6"
 
 # Intervalo da verificação automática de atualizações (programa aberto)
@@ -25,3 +28,18 @@ GITHUB_REPO = "Joshpcbrrj/gerador-email-hepta"
 
 # URL da API do GitHub para buscar a última release
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+
+# ============================================================================
+# REGRAS DO FORMULÁRIO
+# ============================================================================
+MAX_TELEFONES = 10
+
+# Nome sugerido no primeiro uso; depois o programa lembra o último nome usado
+FUNCIONARIO_PADRAO = "Josué B. Almeida"
+
+# ============================================================================
+# PASTA DE DADOS DO USUÁRIO (preferências e log)
+# ============================================================================
+PASTA_DADOS = os.path.join(
+    os.environ.get("APPDATA") or os.path.expanduser("~"), "GeradorEmailHepta"
+)

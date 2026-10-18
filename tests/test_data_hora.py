@@ -8,6 +8,7 @@ Garante que o modo automático usa o horário do momento da geração
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datetime import datetime
@@ -18,7 +19,6 @@ from data_hora import resolver_data_hora, formatar_data_hora
 
 
 class TestModoAutomatico:
-
     def test_usa_horario_do_momento_da_geracao(self):
         """Campos mostrando 10:00 (abertura) não importam no modo automático."""
         agora = datetime(2026, 10, 17, 12, 34, 56)
@@ -43,7 +43,6 @@ class TestModoAutomatico:
 
 
 class TestModoManual:
-
     def test_usa_valores_escolhidos(self):
         momento = resolver_data_hora(False, "05", "03", "2026", "09", "07")
         assert momento == datetime(2026, 3, 5, 9, 7)
@@ -59,6 +58,5 @@ class TestModoManual:
 
 
 class TestFormatacao:
-
     def test_formato_do_email(self):
         assert formatar_data_hora(datetime(2026, 1, 2, 3, 4)) == "02/01/2026 às 03:04 BRT"

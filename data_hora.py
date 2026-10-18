@@ -31,11 +31,11 @@ def resolver_data_hora(automatico, dia, mes, ano, hora, minuto, agora=None):
 
     try:
         return datetime(int(ano), int(mes), int(dia), int(hora), int(minuto))
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as erro:
         raise ValueError(
             f"Data/hora inválida: {str(dia).zfill(2)}/{str(mes).zfill(2)}/{ano} "
             f"{str(hora).zfill(2)}:{str(minuto).zfill(2)}"
-        )
+        ) from erro
 
 
 def formatar_data_hora(momento):

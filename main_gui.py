@@ -10,40 +10,48 @@ Autor: Josué B. Almeida
 GitHub: https://github.com/Joshpcbrrj
 """
 
+import logging
 import tkinter as tk
-import customtkinter as ctk
 import webbrowser
+from tkinter import messagebox
 
-from config import VERSAO_ATUAL, INTERVALO_VERIFICAR_ATUALIZACAO_MS
-from tema_manager import TemaManager
-from widgets import (
-    criar_widgets,
-    atualizar_texto_botao_tema,
-    TEXTO_HORARIO_AUTOMATICO,
-    TEXTO_HORARIO_MANUAL,
-)
-from widget_helpers import aplicar_estilo_botao, preencher_horario
+import customtkinter as ctk
+
+import preferencias
+from atualizacao import perguntar_download, verificar_atualizacao
+from config import FUNCIONARIO_PADRAO, INTERVALO_VERIFICAR_ATUALIZACAO_MS, VERSAO_ATUAL
+from data_hora import resolver_data_hora
 from eventos import (
     adicionar_celular,
     adicionar_fixo,
-    remover_telefone,
     limpar_listas,
     limpar_tudo,
-    obter_todos_telefones,
     mostrar_mensagem_temporaria,
+    obter_todos_telefones,
+    remover_telefone,
 )
 from geracao_email import gerar_email, limpar_pasta_temp
-from atualizacao import verificar_atualizacao, perguntar_download
-from data_hora import resolver_data_hora
+from registro import ARQUIVO_LOG, configurar_log
+from tema_manager import TemaManager
+from widget_helpers import aplicar_estilo_botao, preencher_horario
+from widgets import (
+    TEXTO_HORARIO_AUTOMATICO,
+    TEXTO_HORARIO_MANUAL,
+    atualizar_texto_botao_tema,
+    criar_widgets,
+)
 
 # De quanto em quanto tempo os campos de data/hora acompanham o relógio
 INTERVALO_RELOGIO_MS = 15 * 1000
+
+log = logging.getLogger(__name__)
 
 
 class GeradorEmailGUI:
     """Classe principal da interface gráfica"""
 
     def __init__(self):
+        configurar_log()
         self.tema_manager = TemaManager(self)
         self.tema_manager.aplicar_tema()
         ctk.set_default_color_theme("blue")
@@ -54,6 +62,7 @@ class GeradorEmailGUI:
         self.janela.resizable(True, True)
         self.janela.minsize(680, 520)
         self.janela.protocol("WM_DELETE_WINDOW", self.fechar_programa)
+        self.janela.report_callback_exception = self._erro_inesperado
 
         self.tipo_email = tk.StringVar(value="1")
         self.timer_mensagem = None
@@ -91,6 +100,26 @@ class GeradorEmailGUI:
         # Verificação automática: logo após abrir e depois periodicamente
         self.janela.after(1500, self.verificar_atualizacao_automatica)
         self.entry_req.focus_set()
+
+    # ------------------------------------------------------------------
+    # Funcionário (lembra o último nome usado)
+    # ------------------------------------------------------------------
+    def funcionario_salvo(self):
+        return preferencias.ler("funcionario", FUNCIONARIO_PADRAO)
+
+    def lembrar_funcionario(self, nome):
+        preferencias.salvar("funcionario", nome)
+
+    # ------------------------------------------------------------------
+    # Erros inesperados: registra no log e avisa, sem fechar o programa
+    # ------------------------------------------------------------------
+    def _erro_inesperado(self, tipo, valor, rastro):
+        log.error("Erro inesperado na interface", exc_info=(tipo, valor, rastro))
+        messagebox.showerror(
+            "Erro inesperado",
+            f"Ocorreu um erro inesperado: {valor}\n\n"
+            f"Os detalhes foram registrados em:\n{ARQUIVO_LOG}",
+        )
 
     # ------------------------------------------------------------------
     # Telefones
@@ -210,7 +239,7 @@ class GeradorEmailGUI:
             return
         self.label_aviso.configure(
             text=f"🔔  Nova versão v{release['versao']} disponível — "
-                 f"você está usando a v{VERSAO_ATUAL}."
+            f"você está usando a v{VERSAO_ATUAL}."
         )
         self.frame_aviso.grid()
 

@@ -13,6 +13,7 @@ GitHub: https://github.com/Joshpcbrrj
 """
 
 import json
+import logging
 import re
 import urllib.request
 import webbrowser
@@ -20,36 +21,38 @@ from threading import Thread
 from tkinter import messagebox
 
 # Importa as configurações do arquivo config.py
-from config import VERSAO_ATUAL, GITHUB_API_URL
+from config import GITHUB_API_URL, VERSAO_ATUAL
+
+log = logging.getLogger(__name__)
 
 
-def versao_para_tupla(versao):
+def versao_para_tupla(versao: str | None) -> tuple[int, ...]:
     """Converte '2.10' / 'v2.6.1' em (2, 10) / (2, 6, 1) para comparar numericamente."""
     return tuple(int(n) for n in re.findall(r"\d+", versao or ""))
 
 
-def versao_mais_nova(remota, atual=VERSAO_ATUAL):
+def versao_mais_nova(remota: str | None, atual: str = VERSAO_ATUAL) -> bool:
     """True se a versão remota for maior que a atual (comparação numérica)."""
     remota_t = versao_para_tupla(remota)
     return bool(remota_t) and remota_t > versao_para_tupla(atual)
 
 
-def consultar_ultima_release():
+def consultar_ultima_release() -> dict:
     """
     Consulta a API do GitHub e retorna um dict com
     'versao', 'url' e 'notas' da última release.
     Lança exceção em caso de erro de rede.
     """
     req = urllib.request.Request(GITHUB_API_URL)
-    req.add_header('User-Agent', 'GeradorEmailHepta')
+    req.add_header("User-Agent", "GeradorEmailHepta")
 
     with urllib.request.urlopen(req, timeout=5) as response:
-        dados = json.loads(response.read().decode('utf-8'))
+        dados = json.loads(response.read().decode("utf-8"))
 
     return {
-        'versao': dados.get('tag_name', '').lstrip('vV'),
-        'url': dados.get('html_url', ''),
-        'notas': dados.get('body') or 'Sem notas de versão disponíveis.',
+        "versao": dados.get("tag_name", "").lstrip("vV"),
+        "url": dados.get("html_url", ""),
+        "notas": dados.get("body") or "Sem notas de versão disponíveis.",
     }
 
 
@@ -62,14 +65,15 @@ def perguntar_download(parent_window, release):
         f"Nova versão: {release['versao']}\n\n"
         f"Notas da versão:\n{release['notas'][:300]}...\n\n"
         f"Deseja abrir a página de download?",
-        parent=parent_window
+        parent=parent_window,
     )
     if resposta:
-        webbrowser.open(release['url'])
+        webbrowser.open(release["url"])
 
 
-def verificar_atualizacao(parent_window, callback=None, ao_encontrar=None,
-                          silencioso=False, ao_falhar=None):
+def verificar_atualizacao(
+    parent_window, callback=None, ao_encontrar=None, silencioso=False, ao_falhar=None
+):
     """
     Verifica se há uma nova versão disponível no GitHub (em thread separada).
 
@@ -86,7 +90,7 @@ def verificar_atualizacao(parent_window, callback=None, ao_encontrar=None,
         try:
             release = consultar_ultima_release()
 
-            if versao_mais_nova(release['versao']):
+            if versao_mais_nova(release["versao"]):
                 if ao_encontrar:
                     parent_window.after(0, lambda: ao_encontrar(release))
                 if not silencioso:
@@ -95,7 +99,7 @@ def verificar_atualizacao(parent_window, callback=None, ao_encontrar=None,
                 parent_window.after(0, callback)
 
         except Exception as e:
-            print(f"Erro ao verificar atualização: {e}")
+            log.warning("Erro ao verificar atualização: %s", e)
             tratar_erro = ao_falhar or callback
             if tratar_erro:
                 parent_window.after(0, tratar_erro)

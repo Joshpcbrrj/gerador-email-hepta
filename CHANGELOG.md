@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD024 -->
 # Changelog
 
 Todas as mudanças relevantes do projeto são registradas aqui.
@@ -7,22 +8,29 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 ## [2.6] - 2026-10-17
 
 ### Adicionado
+
 - Opção **Usar data e hora atuais**, ligada por padrão. Os campos acompanham o relógio; escolher um valor manualmente desliga a opção, e **Novo e-mail** volta ao automático.
 - Verificação automática de atualizações ao abrir o programa e a cada 4 horas, com faixa de aviso no topo da janela e botão **Baixar atualização**.
 - Botão **✕** para remover cada telefone e contador de telefones (x/10).
 - Atalho **Ctrl+Enter** para gerar o e-mail.
-- O tema escolhido (claro ou escuro) é lembrado na próxima vez que o programa abrir.
+- O tema escolhido (claro ou escuro) e o nome do **Funcionário** são lembrados na próxima vez que o programa abrir. **Novo e-mail** volta para o último nome usado.
+- Registro de erros em `%APPDATA%\GeradorEmailHepta\gerador.log`, para facilitar o diagnóstico quando algo der errado.
 
 ### Alterado
+
 - Novo visual: seções em cartões, paleta clara e escura revisada, fonte Segoe UI e efeito ao passar o mouse nos botões.
 - O seletor de tipo de e-mail mostra uma descrição de cada opção.
 - **Novo e-mail** não abre mais uma janela de confirmação; a confirmação aparece na barra de status.
 - Janela inicial maior (960×720) e tamanho mínimo de 680×520.
+- Os textos dos e-mails passam a ficar em modelos editáveis (`templates/`). O e-mail gerado continua idêntico ao da versão anterior.
 
 ### Corrigido
+
 - A hora do e-mail agora é a do momento em que você clica em **Gerar e-mail**. Antes era a hora em que o programa foi aberto: aberto às 10h e usado às 12h, o e-mail saía com 10h. A data também acompanha a virada do dia.
 - O e-mail de **Fechamento** passa a respeitar a hora escolhida manualmente (antes usava sempre a hora atual).
 - Datas inválidas (ex: 31/02) são recusadas com aviso, em vez de irem para o e-mail.
+- Com o campo **Funcionário** vazio, o e-mail saía assinado com um nome padrão; agora o programa pede o nome.
+- Caracteres como `<` e `&` no nome ou na REQ não quebram mais o e-mail.
 - Tema claro: fundos com cor errada atrás dos textos do rodapé, seções sem separação visual, lista de telefones vazia cortada e barra de rolagem aparecendo sem necessidade.
 - O programa travava ao trocar o tema com o tipo **Fechamento** selecionado.
 - A versão interna estava como 2.4 na release 2.5, o que fazia o programa sempre oferecer atualização.
@@ -32,16 +40,19 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 ## [2.5] - 2026-05-26
 
 ### Adicionado
+
 - **Nota de Chamado Improdutivo**, aberta junto com o e-mail de fechamento (dois HTMLs: e-mail + nota).
 - Data e hora preenchidas automaticamente com o horário atual, mantendo o ajuste manual.
 
 ### Alterado
+
 - Janela inicial de 960×640 e mínimo de 640×480, para melhor uso em notebooks.
 - Build do `.exe` com `--collect-all customtkinter`.
 
 ## [2.4] - 2026-05-25
 
 ### Alterado
+
 - Interface redesenhada com **CustomTkinter** (botões arredondados).
 - Layout de aplicativo desktop: barra de ações fixa (Gerar, Limpar, Novo) e barra de status.
 - Lista de telefones em formato de lista clicável.
@@ -49,6 +60,7 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 ## [2.3] - 2026-05-22
 
 ### Adicionado
+
 - Tema escuro e botões de tema e atualização no canto superior direito.
 - Verificação de atualizações pelo GitHub.
 - Indicação da opção de aviso escolhida.
@@ -58,15 +70,18 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 - Testes automatizados.
 
 ### Corrigido
+
 - Formatação de telefones fixos (não adiciona mais o dígito 9).
 - Limpeza automática dos arquivos temporários ao fechar.
 
 ## [2.2] - 2026-05-21
 
 ### Adicionado
+
 - Campo separado para telefone fixo, com separação visual entre celular e fixo.
 
 ### Corrigido
+
 - Telefones fixos não recebem mais o dígito 9 automaticamente.
 
 ## [2.0] - 2026-05-21

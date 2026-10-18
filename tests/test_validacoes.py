@@ -1,93 +1,78 @@
 # -*- coding: utf-8 -*-
 """
-TESTES PARA VALIDAÇÕES
+TESTES PARA VALIDAÇÕES DO FORMULÁRIO
 ================================================================================
-Testa as funções de validação do sistema (REQ, limites, etc.)
+Testa as regras reais de geracao_email (REQ, telefones, nome) e os tipos.
 """
 
 import sys
 import os
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
-from telefones import formatar_telefones
+
+from config import MAX_TELEFONES
+from geracao_email import normalizar_req, validar_formulario
+from tipo_email import TipoEmail
+
+UM_TELEFONE = ["(11) 99999-9999"]
 
 
-class TestValidacaoREQ:
-    """Testes para validação do número da requisição"""
-    
-    def test_req_formato_completo(self):
-        """Teste: REQ no formato completo com prefixo"""
-        req = "REQ000008198188"
-        assert req.startswith("REQ")
-        assert len(req) > 3
-    
-    def test_req_apenas_numeros(self):
-        """Teste: REQ apenas com números (sem prefixo)"""
-        req = "000008198188"
-        assert not req.startswith("REQ")
-        assert req.isdigit()
-    
+class TestNormalizarReq:
+    def test_apenas_numeros_ganha_prefixo(self):
+        assert normalizar_req("000008198188") == ("REQ000008198188", "000008198188")
+
+    def test_com_prefixo(self):
+        assert normalizar_req("REQ000008198188") == ("REQ000008198188", "000008198188")
+
+    def test_prefixo_minusculo_vira_maiusculo(self):
+        assert normalizar_req("req555") == ("REQ555", "555")
+
+    def test_espacos_sao_ignorados(self):
+        assert normalizar_req("  123  ") == ("REQ123", "123")
+
+
+class TestValidarFormulario:
+    def test_formulario_valido(self):
+        assert validar_formulario("123", TipoEmail.AVISO_1, UM_TELEFONE, "Ana") is None
+
     def test_req_vazia(self):
-        """Teste: REQ vazia deve ser rejeitada"""
-        req = ""
-        assert len(req) == 0
+        erro = validar_formulario("   ", TipoEmail.AVISO_1, UM_TELEFONE, "Ana")
+        assert erro and "REQ" in erro.status
+
+    def test_aviso_sem_telefone(self):
+        erro = validar_formulario("123", TipoEmail.AVISO_2, [], "Ana")
+        assert erro and "telefone" in erro.status
+
+    def test_fechamento_nao_exige_telefone(self):
+        assert validar_formulario("123", TipoEmail.FECHAMENTO, [], "Ana") is None
+
+    def test_limite_de_telefones_aceito(self):
+        telefones = UM_TELEFONE * MAX_TELEFONES
+        assert validar_formulario("123", TipoEmail.AVISO_3, telefones, "Ana") is None
+
+    def test_limite_de_telefones_ultrapassado(self):
+        telefones = UM_TELEFONE * (MAX_TELEFONES + 1)
+        erro = validar_formulario("123", TipoEmail.AVISO_3, telefones, "Ana")
+        assert erro and "Remova 1 telefone" in erro.detalhe
+
+    def test_nome_vazio_nao_assina_com_nome_de_outra_pessoa(self):
+        erro = validar_formulario("123", TipoEmail.AVISO_1, UM_TELEFONE, "  ")
+        assert erro and "funcionário" in erro.status
 
 
-class TestValidacaoLimiteTelefones:
-    """Testes para validação de limite de telefones"""
-    
-    def test_limite_maximo_10(self):
-        """Teste: limite máximo de 10 telefones deve ser aceito"""
-        telefones = [f"(11) 9999{i}-999{i}" for i in range(10)]
-        assert len(telefones) <= 10
-    
-    def test_limite_ultrapassado_11(self):
-        """Teste: 11 telefones ultrapassa o limite"""
-        telefones = [f"(11) 9999{i}-999{i}" for i in range(11)]
-        assert len(telefones) > 10
-    
-    def test_limite_ultrapassado_15(self):
-        """Teste: 15 telefones ultrapassa o limite"""
-        telefones = [f"(11) 9999{i}-999{i}" for i in range(15)]
-        assert len(telefones) > 10
+class TestTipoEmail:
+    def test_valores_compativeis_com_nomes_de_arquivo(self):
+        assert [t.value for t in TipoEmail] == ["1", "2", "3", "4"]
 
+    def test_textos_dos_avisos(self):
+        assert TipoEmail.AVISO_2.ordinal == "2º"
+        assert TipoEmail.AVISO_3.extenso == "terceira"
 
-class TestValidacaoTelefoneObrigatorio:
-    """Testes para validação de telefone obrigatório"""
-    
-    def test_lista_vazia_deve_ser_rejeitada(self):
-        """Teste: lista vazia de telefones deve ser rejeitada"""
-        telefones = []
-        assert len(telefones) == 0
-    
-    def test_lista_com_um_telefone_deve_ser_aceita(self):
-        """Teste: lista com um telefone deve ser aceita"""
-        telefones = ["(11) 99999-9999"]
-        assert len(telefones) >= 1
-    
-    def test_lista_com_celular_apenas(self):
-        """Teste: apenas celular é aceito"""
-        telefones = ["(11) 99999-9999"]
-        assert len(telefones) == 1
-    
-    def test_lista_com_fixo_apenas(self):
-        """Teste: apenas fixo é aceito"""
-        telefones = ["(11) 3431-3701"]
-        assert len(telefones) == 1
+    def test_somente_fechamento_dispensa_telefone(self):
+        assert [t.exige_telefone for t in TipoEmail] == [True, True, True, False]
 
-
-class TestValidacaoFormatacaoLista:
-    """Testes para formatação de lista de telefones (casos especiais)"""
-    
-    def test_formatar_lista_com_telefones_repetidos(self):
-        """Teste: lista com telefones repetidos"""
-        resultado = formatar_telefones(["(11) 99999-9999", "(11) 99999-9999"])
-        assert "e" in resultado
-    
-    def test_formatar_lista_com_telefones_emojis(self):
-        """Teste: lista com emojis (deve manter formatação)"""
-        telefones_com_emoji = ["📞 (11) 99999-9999", "🏠 (21) 3376-3562"]
-        # A função formatar_telefones não remove emojis
-        resultado = formatar_telefones(telefones_com_emoji)
-        assert "📞" in resultado or "🏠" in resultado
+    def test_valor_invalido(self):
+        with pytest.raises(ValueError):
+            TipoEmail("5")

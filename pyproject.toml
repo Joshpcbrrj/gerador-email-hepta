@@ -1,0 +1,24 @@
+[project]
+name = "gerador-email-hepta"
+description = "Gerador de e-mails padronizados para o Suporte Hepta"
+requires-python = ">=3.13"
+license = "MIT"
+authors = [{ name = "Josué B. Almeida" }]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["build", "dist"]
+
+[tool.ruff.lint]
+# E/W: estilo · F: erros (imports e variáveis sem uso) · I: ordem dos imports
+# UP: sintaxe moderna · B: armadilhas comuns
+select = ["E", "W", "F", "I", "UP", "B"]
+ignore = [
+    "E501",  # linhas longas: textos e mensagens ficam mais legíveis inteiros
+    "UP009", # "# -*- coding: utf-8 -*-" mantido no cabeçalho dos arquivos
+]
+
+[tool.ruff.lint.per-file-ignores]
+# testes ajustam o sys.path antes dos imports
+"tests/*" = ["E402", "I001"]

@@ -1,39 +1,23 @@
-# ============================================================================
-# FUNÇÕES PARA MANIPULAÇÃO DE ARQUIVOS E IMAGENS
-# ============================================================================
+# -*- coding: utf-8 -*-
+"""
+UTILITÁRIOS
+================================================================================
+Localização de arquivos do programa (imagens, modelos de e-mail).
+"""
 
-def resource_path(relative_path):
+import os
+import sys
+
+# Pasta do código-fonte (quando executado como .py)
+PASTA_PROGRAMA = os.path.dirname(os.path.abspath(__file__))
+
+
+def resource_path(relative_path: str) -> str:
     """
-    Encontra o caminho correto dos arquivos quando o programa é transformado em .exe.
-    
-    Quando executado como script .py: retorna o caminho normal
-    Quando executado como .exe: retorna o caminho dentro da pasta temporária
+    Caminho absoluto de um arquivo do programa.
+
+    - Como .py: relativo à pasta do código (funciona de qualquer diretório).
+    - Como .exe (PyInstaller): relativo à pasta temporária onde o .exe se extrai.
     """
-    import os
-    import sys
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
+    base_path = getattr(sys, "_MEIPASS", PASTA_PROGRAMA)
     return os.path.join(base_path, relative_path)
-
-
-def imagem_to_base64(caminho_imagem):
-    """
-    Converte uma imagem para o formato base64 (texto).
-    
-    Útil para embutir imagens diretamente no HTML dos e-mails.
-    """
-    import os
-    import base64
-    try:
-        if os.path.exists(caminho_imagem):
-            with open(caminho_imagem, "rb") as img_file:
-                return base64.b64encode(img_file.read()).decode('utf-8')
-        caminho_resource = resource_path(caminho_imagem)
-        if os.path.exists(caminho_resource):
-            with open(caminho_resource, "rb") as img_file:
-                return base64.b64encode(img_file.read()).decode('utf-8')
-        return None
-    except:
-        return None

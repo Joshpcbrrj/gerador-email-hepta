@@ -9,36 +9,21 @@ a troca é feita pelo próprio CustomTkinter, sem repintar widget por widget.
 A escolha do tema é lembrada entre execuções.
 """
 
-import json
-import os
-
 import customtkinter as ctk
+
+import preferencias
 import temas
 
-PASTA_PREFERENCIAS = os.path.join(
-    os.environ.get("APPDATA") or os.path.expanduser("~"), "GeradorEmailHepta"
-)
-ARQUIVO_PREFERENCIAS = os.path.join(PASTA_PREFERENCIAS, "preferencias.json")
 
-
-def carregar_tema_salvo():
+def carregar_tema_salvo() -> str:
     """Lê o tema salvo ('claro' ou 'escuro'); padrão: 'claro'."""
-    try:
-        with open(ARQUIVO_PREFERENCIAS, encoding="utf-8") as f:
-            tema = json.load(f).get("tema")
-        return tema if tema in temas.CORES else "claro"
-    except (OSError, ValueError, AttributeError):
-        return "claro"
+    tema = preferencias.ler("tema", "claro")
+    return tema if tema in temas.CORES else "claro"
 
 
-def salvar_tema(tema):
+def salvar_tema(tema: str) -> None:
     """Salva o tema escolhido (falhas são ignoradas)."""
-    try:
-        os.makedirs(PASTA_PREFERENCIAS, exist_ok=True)
-        with open(ARQUIVO_PREFERENCIAS, "w", encoding="utf-8") as f:
-            json.dump({"tema": tema}, f)
-    except OSError:
-        pass
+    preferencias.salvar("tema", tema)
 
 
 class TemaManager:

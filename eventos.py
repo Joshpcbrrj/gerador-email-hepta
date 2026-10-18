@@ -6,16 +6,17 @@ Funções de evento para a interface gráfica (adicionar, remover, limpar).
 """
 
 from tkinter import messagebox
-from telefones import formatar_celular, formatar_fixo
+
+from config import MAX_TELEFONES
 from lista_telefones import (
     adicionar_telefone_lista,
-    remover_telefone_indice,
     limpar_lista_telefones,
     obter_todos_telefones_da_lista,
+    remover_telefone_indice,
 )
+from telefones import formatar_celular, formatar_fixo
 
 MENSAGEM_PRONTA = "Pronto para gerar e-mail"
-MAX_TELEFONES = 10
 
 
 def mostrar_mensagem_temporaria(gui, mensagem, cor="green", duracao_ms=3000):
@@ -41,9 +42,7 @@ def _adicionar(gui, formatar, emoji, descricao):
         messagebox.showwarning("Aviso", "Digite um número de telefone!")
         return
     if len(gui.telefones) >= MAX_TELEFONES:
-        messagebox.showwarning(
-            "Aviso", f"O limite é de {MAX_TELEFONES} telefones por chamado."
-        )
+        messagebox.showwarning("Aviso", f"O limite é de {MAX_TELEFONES} telefones por chamado.")
         return
 
     telefone_formatado = formatar(telefone)
@@ -87,7 +86,7 @@ def limpar_tudo(gui):
     limpar_lista_telefones(gui, gui.tema_manager)
     gui.entry_telefone.delete(0, "end")
     gui.entry_nome.delete(0, "end")
-    gui.entry_nome.insert(0, "Josué B. Almeida")
+    gui.entry_nome.insert(0, gui.funcionario_salvo())
     gui.ativar_horario_automatico()
     gui.selecionar_tipo("1")
     gui.entry_req.focus_set()

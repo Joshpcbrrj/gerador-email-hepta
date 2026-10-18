@@ -20,7 +20,7 @@ Ferramenta desktop para Windows que gera, em segundos, os e-mails padronizados d
 
 ## Como usar
 
-1. **REQ** — digite o número da requisição (ex: `000008198188`). O campo **Funcionário** já vem preenchido.
+1. **REQ** — digite o número da requisição (ex: `000008198188`). Confira o **Funcionário**: o programa lembra o último nome usado.
 2. **Tipo de e-mail** — escolha 1º, 2º ou 3º aviso, ou **Fechamento**. A descrição abaixo dos botões explica cada um.
 3. **Telefones** — digite o número com DDD e clique em **Celular** ou **Fixo** (Enter adiciona como celular). Use o **✕** da linha para remover. Limite de 10 por chamado; no Fechamento são opcionais.
 4. **Data e horário** — com **Usar data e hora atuais** ligado (padrão), o e-mail registra o horário do momento em que você clica em gerar, mesmo que o programa esteja aberto há horas. Para informar outro horário, escolha nos campos: a opção desliga sozinha.
@@ -52,11 +52,13 @@ Clique em **Baixar atualização**, baixe o novo `.exe` e substitua o antigo. O 
 | "Não foi possível verificar atualizações" | O computador não acessou o GitHub (sem internet ou bloqueio da rede/proxy). O programa funciona normalmente; baixe a versão nova direto na [página de releases](https://github.com/Joshpcbrrj/gerador-email-hepta/releases/latest). |
 | Horário diferente do esperado no e-mail | Confira se **Usar data e hora atuais** está ligado e se o relógio do Windows está certo. |
 | E-mail não abre | O programa usa o navegador padrão do Windows. Confira em *Configurações → Aplicativos → Aplicativos padrão*. |
+| Mensagem de "erro inesperado" | O programa continua aberto. Os detalhes ficam no arquivo de log (veja [Privacidade e arquivos](#privacidade-e-arquivos)); anexe-o ao [abrir uma issue](https://github.com/Joshpcbrrj/gerador-email-hepta/issues). |
 
 ## Privacidade e arquivos
 
 - Os e-mails gerados ficam em `%TEMP%\gerador_email_hepta` e são **apagados ao fechar** o programa.
-- O tema escolhido fica em `%APPDATA%\GeradorEmailHepta\preferencias.json`.
+- O tema e o nome do funcionário ficam em `%APPDATA%\GeradorEmailHepta\preferencias.json`.
+- Erros são registrados em `%APPDATA%\GeradorEmailHepta\gerador.log` (sem dados de clientes). Se for relatar um problema, anexe esse arquivo.
 - O único acesso à internet é a consulta da última versão na API pública do GitHub (`api.github.com`). Nenhum dado de chamado ou de cliente é enviado.
 
 ## Mais informações

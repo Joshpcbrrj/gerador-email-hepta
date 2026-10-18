@@ -2,307 +2,85 @@
 """
 MÓDULO DE GERAÇÃO DE HTML
 ================================================================================
-Gera os e-mails em formato HTML (aviso e fechamento).
+Monta os e-mails (aviso, fechamento) e a nota de improdutivo a partir dos
+modelos em templates/.
+
+Para alterar um texto do e-mail, edite o arquivo .html correspondente em
+templates/ — não é preciso mexer no código. Os campos variáveis aparecem
+no modelo como $nome_do_campo.
 
 Autor: Josué B. Almeida
 GitHub: https://github.com/Joshpcbrrj
 """
 
-from imagens import obter_winvnc_base64, obter_logo_base64
+import html
+from functools import cache
+from string import Template
+
+from imagens import obter_logo_base64, obter_winvnc_base64
+from tipo_email import TipoEmail
+from utils import resource_path
 
 
-def gerar_email_aviso_html(titulo, num_req, nome, telefones, data_hora, tentativa):
-    """
-    FUNÇÃO: gerar_email_aviso_html
-    ===========================================================================
-    Gera o e-mail de AVISO (1ª, 2ª ou 3ª tentativa) em formato HTML.
-    
-    PARÂMETROS:
-    ===========================================================================
-    - titulo: str - Título do e-mail (ex: "REQ123 - 1º aviso...")
-    - num_req: str - Número da requisição (ex: "REQ123")
-    - nome: str - Nome do funcionário que assina
-    - telefones: str - Telefone(s) formatado(s)
-    - data_hora: str - Data e hora formatada
-    - tentativa: str - "1", "2" ou "3"
-    
-    RETORNO:
-    ===========================================================================
-    str - String contendo o HTML completo do e-mail de aviso
-    """
-    
-    # Obtém as imagens em base64 usando as funções centralizadas
-    winvnc_base64 = obter_winvnc_base64()
-    logo_base64 = obter_logo_base64()
-    
-    # Mapeamento para texto ordinal
-    tentativa_texto = {
-        '1': 'primeira', '2': 'segunda', '3': 'terceira'
-    }.get(tentativa, 'primeira')
-    
-    tentativa_ordinal = {
-        '1': '1º', '2': '2º', '3': '3º'
-    }.get(tentativa, '1º')
-    
-    html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-    body {{
-        font-family: Arial, sans-serif;
-        font-size: 11pt;
-        line-height: 1.5;
-        color: #333;
-        margin: 20px;
-        background-color: #fff;
-    }}
-    .container {{
-        max-width: 700px;
-        margin: 0 auto;
-    }}
-    .titulo {{
-        font-size: 14pt;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #000;
-    }}
-    .imagem-winvnc {{
-        text-align: center;
-        margin: 20px 0;
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 8px;
-    }}
-    .imagem-winvnc img {{
-        max-width: 100%;
-        height: auto;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }}
-    .legenda {{
-        font-size: 10pt;
-        color: #666;
-        text-align: center;
-        font-style: italic;
-        margin-top: 8px;
-    }}
-    .assinatura-conteudo {{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-top: 30px;
-        padding-top: 15px;
-        border-top: 2px solid #e0e0e0;
-    }}
-    .assinatura-logo img {{
-        max-width: 100px;
-        height: auto;
-    }}
-    .creditos {{
-        font-size: 8pt;
-        color: #999;
-        text-align: center;
-        margin-top: 40px;
-        padding-top: 10px;
-        border-top: 1px solid #eee;
-    }}
-    .dica-copy {{
-        background-color: #e8f4f8;
-        border-left: 4px solid #2196F3;
-        padding: 10px 15px;
-        margin: 20px 0;
-    }}
-</style>
-</head>
-<body>
-<div class="container">
-    
-    <div class="dica-copy">
-        <b>📋 COMO COPIAR ESTE E-MAIL:</b><br/>
-        1. Selecione TODO o texto abaixo (Ctrl+A)<br/>
-        2. Copie (Ctrl+C)<br/>
-        3. Cole no seu e-mail (Ctrl+V)
-    </div>
-    
-    <div class="titulo">{titulo}</div>
-    
-    <p>Prezado Cliente,</p>
-    
-    <p>A equipe de Suporte Técnico Remoto informa que não obteve sucesso na {tentativa_texto} tentativa de contato pelo(s) telefone(s) {telefones}, realizada no dia {data_hora}, com o objetivo de iniciar o atendimento da {num_req}.</p>
-    
-    <p>Dessa forma, realizaremos mais uma tentativa de atendimento sem contato telefônico, aplicando procedimento técnico com o objetivo de solucionar a demanda do chamado sem que haja interferência na utilização do seu microcomputador.</p>
-    
-    <p>Eventualmente, poderá ser necessária autorização para acessar a sua área de trabalho. Se for o caso, enviaremos uma nova solicitação de acesso que aparecerá no centro do seu monitor, conforme a janela apresentada abaixo:</p>
-    
-    <div class="imagem-winvnc">
-        {f'<img src="data:image/png;base64,{winvnc_base64}" alt="WinVNC"/>' if winvnc_base64 else '<p>⚠️ IMAGEM NÃO ENCONTRADA</p>'}
-        <div class="legenda">Figura 1: Janela do WinVNC - Clique em ACCEPT para autorizar o acesso remoto</div>
-    </div>
-    
-    <p>Neste caso, basta clicar no botão "<b>ACCEPT</b>" para que o atendimento seja iniciado.</p>
-    
-    <p>Caso não seja possível atender diretamente à demanda sem contato telefônico, ou caso não seja respondido ou não seja autorizado o acesso remoto, no intervalo de 40 minutos a 1 hora será efetuada uma nova tentativa de contato para se proceder com o atendimento do chamado.</p>
-    
-    <p>Por favor, caso tenha algum outro número de telefone, informe-o respondendo a este e-mail.</p>
-    
-    <div class="assinatura-conteudo">
-        <div>
-            <p>Atenciosamente,</p>
-            <p>
-            <b>{nome}</b><br/>
-            Suporte Técnico II - Hepta<br/>
-            (61) 3424-4800<br/>
-            <span style="font-size: 9pt; color: #666;">Importante: Telefone exclusivo para realização de ligações. De acordo com o contrato, este número não recebe chamadas.</span>
-            </p>
-        </div>
-        <div class="assinatura-logo">
-            {f'<img src="data:image/png;base64,{logo_base64}" alt="Hepta Tecnologia"/>' if logo_base64 else '<b>Hepta Tecnologia</b>'}
-        </div>
-    </div>
-    
-    <div class="creditos">
-        <hr/>
-        Programa feito por: Josué B. Almeida | GitHub: https://github.com/Joshpcbrrj<br/>
-        Documento gerado automaticamente pelo sistema de suporte Hepta
-    </div>
-    
-</div>
-</body>
-</html>"""
-    
-    return html
+@cache
+def _carregar_template(nome: str) -> Template:
+    with open(resource_path(f"templates/{nome}.html"), encoding="utf-8") as f:
+        return Template(f.read())
 
 
-def gerar_email_fechamento_html(titulo, num_req, nome, data_hora):
+def _texto(valor: str) -> str:
+    """Escapa texto digitado pelo usuário (ex: '<' e '&' não quebram o HTML)."""
+    return html.escape(valor, quote=False)
+
+
+def _imagem_winvnc() -> str:
+    winvnc = obter_winvnc_base64()
+    if winvnc:
+        return f'<img src="data:image/png;base64,{winvnc}" alt="WinVNC"/>'
+    return "<p>⚠️ IMAGEM NÃO ENCONTRADA</p>"
+
+
+def _imagem_logo() -> str:
+    logo = obter_logo_base64()
+    if logo:
+        return f'<img src="data:image/png;base64,{logo}" alt="Hepta Tecnologia"/>'
+    return "<b>Hepta Tecnologia</b>"
+
+
+def gerar_email_aviso_html(
+    titulo: str, num_req: str, nome: str, telefones: str, data_hora: str, tentativa: str
+) -> str:
     """
-    FUNÇÃO: gerar_email_fechamento_html
-    ===========================================================================
-    Gera o e-mail de FECHAMENTO (após 3 tentativas sem sucesso) em HTML.
-    
-    PARÂMETROS:
-    ===========================================================================
-    - titulo: str - Título do e-mail (ex: "REQ123 - Chamado Fechado")
-    - num_req: str - Número da requisição (ex: "REQ123")
-    - nome: str - Nome do funcionário que assina
-    - data_hora: str - Data e hora atuais formatadas
-    
-    RETORNO:
-    ===========================================================================
-    str - String contendo o HTML completo do e-mail de fechamento
+    E-mail de AVISO (1ª, 2ª ou 3ª tentativa).
+
+    - telefones: telefone(s) já formatado(s) para o texto
+    - data_hora: ex. "17/10/2026 às 14:30 BRT"
+    - tentativa: "1", "2" ou "3"
     """
-    
-    # Obtém a logo em base64
-    logo_base64 = obter_logo_base64()
-    
-    html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-    body {{
-        font-family: Arial, sans-serif;
-        font-size: 11pt;
-        line-height: 1.5;
-        color: #333;
-        margin: 20px;
-        background-color: #fff;
-    }}
-    .container {{
-        max-width: 700px;
-        margin: 0 auto;
-    }}
-    .titulo {{
-        font-size: 14pt;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #000;
-    }}
-    .assinatura-conteudo {{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-top: 30px;
-        padding-top: 15px;
-        border-top: 2px solid #e0e0e0;
-    }}
-    .assinatura-logo img {{
-        max-width: 100px;
-        height: auto;
-    }}
-    .creditos {{
-        font-size: 8pt;
-        color: #999;
-        text-align: center;
-        margin-top: 40px;
-        padding-top: 10px;
-        border-top: 1px solid #eee;
-    }}
-    .dica-copy {{
-        background-color: #e8f4f8;
-        border-left: 4px solid #2196F3;
-        padding: 10px 15px;
-        margin: 20px 0;
-    }}
-    .aviso-importante {{
-        background-color: #fff3cd;
-        border-left: 4px solid #ffc107;
-        padding: 10px 15px;
-        margin: 20px 0;
-    }}
-</style>
-</head>
-<body>
-<div class="container">
-    
-    <div class="dica-copy">
-        <b>📋 COMO COPIAR ESTE E-MAIL:</b><br/>
-        1. Selecione TODO o texto abaixo (Ctrl+A)<br/>
-        2. Copie (Ctrl+C)<br/>
-        3. Cole no seu e-mail (Ctrl+V)
-    </div>
-    
-    <div class="titulo">{titulo}</div>
-    
-    <p>Prezado Cliente,</p>
-    
-    <p>A equipe de Suporte Técnico Remoto informa que, após 3 tentativas de contato (por telefone e e-mail) para atendimento da {num_req}, não foi possível proceder com o atendimento do chamado, sendo concluído como improdutivo. Esta informação é registrada em {data_hora}.</p>
-    
-    <div class="aviso-importante">
-        <b>⚠️ ATENÇÃO:</b> Caso ainda necessite de suporte técnico, solicitamos registrar um novo chamado, uma vez que a reabertura deste será considerada indevida.
-    </div>
-    
-    <p>Ressaltamos que a equipe de Suporte Técnico preza pela segurança das informações do usuário e, por isso, adota procedimentos relacionados às tentativas de contato e à autorização do usuário para a realização do atendimento.</p>
-    
-    <p>Com o objetivo de evitarmos outros chamados improdutivos, solicitamos que sejam informados outro(s) número(s) telefônico(s) (se possível, inclusive celular) para que você possa ser facilmente encontrado. O(s) e-mail(s) permanecerá(ão) sendo enviado(s) como forma alternada de contato e localização.</p>
-    
-    <p>Desde já, agradecemos a compreensão.</p>
-    
-    <div class="assinatura-conteudo">
-        <div>
-            <p>Atenciosamente,</p>
-            <p>
-            <b>{nome}</b><br/>
-            Suporte Técnico II - Hepta<br/>
-            (61) 3424-4800<br/>
-            <span style="font-size: 9pt; color: #666;">Importante: Telefone exclusivo para realização de ligações. De acordo com o contrato, este número não recebe chamadas.</span>
-            </p>
-        </div>
-        <div class="assinatura-logo">
-            {f'<img src="data:image/png;base64,{logo_base64}" alt="Hepta Tecnologia"/>' if logo_base64 else '<b>Hepta Tecnologia</b>'}
-        </div>
-    </div>
-    
-    <div class="creditos">
-        <hr/>
-        Programa feito por: Josué B. Almeida | GitHub: https://github.com/Joshpcbrrj<br/>
-        Documento gerado automaticamente pelo sistema de suporte Hepta
-    </div>
-    
-</div>
-</body>
-</html>"""
-    
-    return html
+    tipo = TipoEmail(tentativa) if tentativa in ("1", "2", "3") else TipoEmail.AVISO_1
+    return _carregar_template("aviso").substitute(
+        titulo=_texto(titulo),
+        num_req=_texto(num_req),
+        nome=_texto(nome),
+        telefones=_texto(telefones),
+        data_hora=_texto(data_hora),
+        tentativa_texto=tipo.extenso,
+        imagem_winvnc=_imagem_winvnc(),
+        imagem_logo=_imagem_logo(),
+    )
+
+
+def gerar_email_fechamento_html(titulo: str, num_req: str, nome: str, data_hora: str) -> str:
+    """E-mail de FECHAMENTO (após 3 tentativas sem sucesso)."""
+    return _carregar_template("fechamento").substitute(
+        titulo=_texto(titulo),
+        num_req=_texto(num_req),
+        nome=_texto(nome),
+        data_hora=_texto(data_hora),
+        imagem_logo=_imagem_logo(),
+    )
+
+
+def gerar_nota_improdutivo_html(num_req_completo: str = "") -> str:
+    """Nota de chamado improdutivo (texto fixo), aberta junto com o fechamento."""
+    return _carregar_template("nota_improdutivo").substitute()

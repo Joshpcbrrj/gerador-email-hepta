@@ -1,0 +1,63 @@
+name: Release
+
+# Publica uma nova versão ao enviar uma tag "v<versão>" (ex: v2.7).
+# Passo a passo completo em docs/DESENVOLVIMENTO.md.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Conferir se a tag bate com VERSAO_ATUAL
+        shell: python
+        run: |
+          import os, sys
+          sys.path.insert(0, ".")
+          from config import VERSAO_ATUAL
+          tag = os.environ["GITHUB_REF_NAME"]
+          if tag != f"v{VERSAO_ATUAL}":
+              sys.exit(f"A tag {tag} não bate com VERSAO_ATUAL = {VERSAO_ATUAL} em config.py")
+
+      - name: Lint e testes
+        run: |
+          ruff check .
+          python -m pytest
+
+      - name: Gerar executável
+        run: pyinstaller --noconfirm --clean --onefile --windowed --name GeradorEmailHepta --collect-all customtkinter --add-data "assets;assets" --add-data "templates;templates" main.py
+
+      - name: Autoteste do executável (modelos e imagens empacotados)
+        run: |
+          $p = Start-Process dist\GeradorEmailHepta.exe -ArgumentList "--autoteste" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Autoteste do executável falhou" }
+
+      - name: Notas da versão (seção do CHANGELOG)
+        shell: python
+        run: |
+          import os, re, sys
+          versao = os.environ["GITHUB_REF_NAME"].lstrip("v")
+          texto = open("CHANGELOG.md", encoding="utf-8").read()
+          m = re.search(rf"^## \[{re.escape(versao)}\][^\n]*\n(.*?)(?=^## \[|^\[)", texto, re.S | re.M)
+          if not m:
+              sys.exit(f"Seção [{versao}] não encontrada no CHANGELOG.md")
+          open("notas.md", "w", encoding="utf-8").write(m.group(1).strip() + "\n")
+
+      - name: Publicar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $env:GITHUB_REF_NAME dist\GeradorEmailHepta.exe --title $env:GITHUB_REF_NAME --notes-file notas.md

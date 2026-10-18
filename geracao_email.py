@@ -2,161 +2,170 @@
 """
 MÓDULO DE GERAÇÃO DE E-MAIL
 ================================================================================
-Funções para gerar o e-mail a partir dos dados do formulário.
+Valida o formulário, monta os HTMLs e abre no navegador.
 
-Versão: Salva em pasta temporária que é limpa ao fechar o programa
+- validar_formulario / normalizar_req / montar_emails: regras puras (testáveis)
+- gerar_email: ligação com a interface (lê campos, salva e abre os arquivos)
+
+Os arquivos ficam numa pasta temporária que é apagada ao fechar o programa.
 """
 
-import webbrowser
-import tempfile
+import logging
 import os
 import shutil
+import tempfile
+import webbrowser
+from dataclasses import dataclass
+from datetime import datetime
 from tkinter import messagebox
-from email_html import gerar_email_aviso_html, gerar_email_fechamento_html
-from telefones import formatar_telefones
+
+from config import MAX_TELEFONES
 from data_hora import formatar_data_hora
+from email_html import (
+    gerar_email_aviso_html,
+    gerar_email_fechamento_html,
+    gerar_nota_improdutivo_html,
+)
+from telefones import formatar_telefones
+from tipo_email import TipoEmail
+
+log = logging.getLogger(__name__)
 
 # ============================================================================
 # PASTA TEMPORÁRIA DO PROGRAMA
 # ============================================================================
 PASTA_TEMP = None
 
-def obter_pasta_temp():
+
+def obter_pasta_temp() -> str:
     """Retorna a pasta temporária do programa, criando se não existir"""
     global PASTA_TEMP
     if PASTA_TEMP is None:
-        # Criar uma pasta única para este programa
         PASTA_TEMP = os.path.join(tempfile.gettempdir(), "gerador_email_hepta")
         os.makedirs(PASTA_TEMP, exist_ok=True)
     return PASTA_TEMP
 
-def limpar_pasta_temp():
+
+def limpar_pasta_temp() -> None:
     """Remove todos os arquivos da pasta temporária"""
     global PASTA_TEMP
     if PASTA_TEMP and os.path.exists(PASTA_TEMP):
         try:
             shutil.rmtree(PASTA_TEMP)
             PASTA_TEMP = None
-        except Exception as e:
-            print(f"Erro ao limpar pasta temporária: {e}")
-
-
-def gerar_nota_improdutivo_html(num_req_completo):
-    """Gera o segundo HTML de nota improdutiva para e-mail de fechamento."""
-    nota_texto = (
-        "IMPRODUTIVO\n"
-        "Este chamado necessita de realização de contato direto com o usuário para autorização de procedimentos.\n"
-        "Foram realizadas 3 tentativas de contato sem sucesso no intervalo de 40 minutos a 1 hora entre elas.\n"
-        "Este chamado será fechado como improdutivo, e sua reabertura será considerada indevida.\n"
-        "Caso ainda necessite do suporte técnico, solicitamos que registre um novo chamado."
-    )
-
-    html_nota = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-    body {{
-        font-family: Arial, sans-serif;
-        font-size: 11pt;
-        line-height: 1.6;
-        color: #333;
-        margin: 0;
-        padding: 20px;
-    }}
-    .container {{
-        max-width: 700px;
-        margin: 0 auto;
-    }}
-    .titulo {{
-        font-size: 14pt;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }}
-    .nota {{
-        white-space: pre-wrap;
-        background-color: #f8f9fa;
-        border: 1px solid #ddd;
-        padding: 16px;
-        border-radius: 8px;
-    }}
-</style>
-</head>
-<body>
-<div class="container">
-    <div class="titulo">Nota de Chamado Improdutivo - E-mail fechamento chamado</div>
-    <div class="nota">{nota_texto}</div>
-</div>
-</body>
-</html>"""
-    return html_nota
+        except OSError as erro:
+            log.warning("Erro ao limpar pasta temporária: %s", erro)
 
 
 # ============================================================================
-# FUNÇÃO formatar_telefones FOI REMOVIDA DAQUI
-# Agora está em telefones.py e é importada acima
+# REGRAS
 # ============================================================================
 
 
-def gerar_email(gui, obter_telefones_func):
+@dataclass(frozen=True)
+class ErroValidacao:
+    status: str  # mensagem curta na barra de status
+    detalhe: str  # mensagem da janela de erro
+
+
+@dataclass(frozen=True)
+class EmailGerado:
+    nome_arquivo: str
+    html: str
+
+
+def normalizar_req(texto: str) -> tuple[str, str]:
     """
-    Gera o e-mail com os dados do formulário e abre no navegador
-    
-    Parâmetros:
-    - gui: instância da classe GeradorEmailGUI
-    - obter_telefones_func: função para obter a lista de telefones
+    Retorna (REQ completa, número) a partir do que foi digitado.
+
+    "000123" -> ("REQ000123", "000123");  "req123" -> ("REQ123", "123")
     """
-    
-    # ====================================================================
-    # VALIDAÇÃO 1: NÚMERO DA REQUISIÇÃO
-    # ====================================================================
-    num_req = gui.entry_req.get().strip()
-    if not num_req:
-        gui.atualizar_status("⚠️ Adicione a REQ para gerar o e-mail!", "orange")
-        messagebox.showerror("Erro", "Digite o número da requisição!")
-        return
-    
-    # ====================================================================
-    # VALIDAÇÃO 2: TIPO DE E-MAIL e TELEFONES
-    # ====================================================================
-    tipo = gui.tipo_email.get()
-    
-    if tipo != '4':  # Só valida telefone se NÃO for fechamento
-        telefones = obter_telefones_func(gui)
-        
-        # Validação: pelo menos um telefone
+    texto = texto.strip()
+    if texto.upper().startswith("REQ"):
+        return texto.upper(), texto[3:]
+    return f"REQ{texto}", texto
+
+
+def validar_formulario(
+    req: str, tipo: TipoEmail, telefones: list[str], nome: str
+) -> ErroValidacao | None:
+    """Retorna o primeiro problema encontrado no formulário, ou None se estiver ok."""
+    if not req.strip():
+        return ErroValidacao(
+            "⚠️ Adicione a REQ para gerar o e-mail!", "Digite o número da requisição!"
+        )
+
+    if tipo.exige_telefone:
         if not telefones:
-            gui.atualizar_status("⚠️ Adicione pelo menos um telefone!", "orange")
-            messagebox.showerror("Erro", "Adicione pelo menos um telefone (celular ou fixo)!")
-            return
-        
-        # VALIDAÇÃO: Limite máximo de 10 telefones
-        MAX_TELEFONES = 10
+            return ErroValidacao(
+                "⚠️ Adicione pelo menos um telefone!",
+                "Adicione pelo menos um telefone (celular ou fixo)!",
+            )
         if len(telefones) > MAX_TELEFONES:
-            gui.atualizar_status(f"⚠️ Limite máximo de {MAX_TELEFONES} telefones excedido! (Atual: {len(telefones)})", "orange")
-            messagebox.showerror(
-                "Erro", 
+            excesso = len(telefones) - MAX_TELEFONES
+            return ErroValidacao(
+                f"⚠️ Limite máximo de {MAX_TELEFONES} telefones excedido! (Atual: {len(telefones)})",
                 f"Você adicionou {len(telefones)} telefones.\n\n"
                 f"⚠️ O limite máximo permitido é {MAX_TELEFONES} telefones por chamado.\n\n"
-                f"Remova {len(telefones) - MAX_TELEFONES} telefone(s) para continuar."
+                f"Remova {excesso} telefone(s) para continuar.",
             )
-            return
-    
+
+    if not nome.strip():
+        return ErroValidacao(
+            "⚠️ Informe o nome do funcionário!",
+            "Informe o nome do funcionário que assina o e-mail.",
+        )
+
+    return None
+
+
+def montar_emails(
+    tipo: TipoEmail, req: str, nome: str, telefones: list[str], momento: datetime
+) -> list[EmailGerado]:
+    """Monta os arquivos HTML do e-mail (e a nota, no fechamento)."""
+    req_completa, req_numero = normalizar_req(req)
+    data_hora = formatar_data_hora(momento)
+    nome = nome.strip()
+
+    if tipo is TipoEmail.FECHAMENTO:
+        titulo = f"{req_completa} - Chamado Fechado"
+        return [
+            EmailGerado(
+                f"email_{req_numero}_{tipo.value}.html",
+                gerar_email_fechamento_html(titulo, req_completa, nome, data_hora),
+            ),
+            EmailGerado(
+                f"nota_improdutivo_{req_numero}.html",
+                gerar_nota_improdutivo_html(req_completa),
+            ),
+        ]
+
+    titulo = f"{req_completa} - {tipo.ordinal} aviso de tentativa de contato com o cliente"
+    html = gerar_email_aviso_html(
+        titulo, req_completa, nome, formatar_telefones(telefones), data_hora, tipo.value
+    )
+    return [EmailGerado(f"email_{req_numero}_{tipo.value}.html", html)]
+
+
+# ============================================================================
+# LIGAÇÃO COM A INTERFACE
+# ============================================================================
+
+
+def gerar_email(gui, obter_telefones_func) -> None:
+    """Gera o e-mail com os dados do formulário e abre no navegador."""
+    tipo = TipoEmail(gui.tipo_email.get())
+    req = gui.entry_req.get().strip()
     nome = gui.entry_nome.get().strip()
-    if not nome:
-        nome = "Josué B. Almeida"
-        
-    # Monta REQ completo
-    if num_req.upper().startswith('REQ'):
-        num_req_completo = num_req.upper()
-        num_req_num = num_req[3:]
-    else:
-        num_req_completo = f"REQ{num_req}"
-        num_req_num = num_req
-    
-    # ====================================================================
-    # DATA E HORA: horário do momento da geração (automático) ou manual
-    # ====================================================================
+    telefones = obter_telefones_func(gui) if tipo.exige_telefone else []
+
+    erro = validar_formulario(req, tipo, telefones, nome)
+    if erro:
+        gui.atualizar_status(erro.status, "orange")
+        messagebox.showerror("Erro", erro.detalhe)
+        return
+
+    # Data e hora: horário do momento da geração (automático) ou manual
     try:
         momento = gui.obter_data_hora_contato()
     except ValueError as e:
@@ -164,64 +173,38 @@ def gerar_email(gui, obter_telefones_func):
         messagebox.showerror("Erro", f"{e}\n\nVerifique a data e o horário do contato.")
         return
 
-    data_hora = formatar_data_hora(momento)
-    hora = f"{momento.hour:02d}"
-    minuto = f"{momento.minute:02d}"
-
-    if tipo == '4':
-        # ====================================================================
-        # E-MAIL DE FECHAMENTO
-        # ====================================================================
-        titulo = f"{num_req_completo} - Chamado Fechado"
-        
-        html = gerar_email_fechamento_html(titulo, num_req_completo, nome, data_hora)
-        
-        gui.atualizar_status(f"🔒 E-mail de FECHAMENTO gerado para {num_req_completo}", "blue")
-        
-    else:
-        # ====================================================================
-        # E-MAIL DE AVISO (1º, 2º ou 3º)
-        # ====================================================================
-        telefones = obter_telefones_func(gui)
-        telefone_str = formatar_telefones(telefones)  # Agora importada de telefones.py
-        tentativa_ordinal = {'1': '1º', '2': '2º', '3': '3º'}[tipo]
-
-        titulo = f"{num_req_completo} - {tentativa_ordinal} aviso de tentativa de contato com o cliente"
-        
-        html = gerar_email_aviso_html(titulo, num_req_completo, nome, telefone_str, data_hora, tipo)
-        
-        gui.atualizar_status(f"📧 E-mail de {tentativa_ordinal} AVISO gerado para {num_req_completo} às {hora}:{minuto}", "blue")
-    
-    # ====================================================================
-    # SALVAR NA PASTA TEMPORÁRIA E ABRIR
-    # ====================================================================
-    
-    # Obter a pasta temporária do programa
+    emails = montar_emails(tipo, req, nome, telefones, momento)
     pasta_temp = obter_pasta_temp()
-    nome_arquivo = f"email_{num_req_num}_{tipo}.html"
-    caminho_completo = os.path.join(pasta_temp, nome_arquivo)
-    
-    try:
-        # Salvar na pasta temporária
-        with open(caminho_completo, 'w', encoding='utf-8') as f:
-            f.write(html)
 
-        if tipo == '4':
-            nota_html = gerar_nota_improdutivo_html(num_req_completo)
-            nome_nota = f"nota_improdutivo_{num_req_num}.html"
-            caminho_nota = os.path.join(pasta_temp, nome_nota)
-            with open(caminho_nota, 'w', encoding='utf-8') as f_nota:
-                f_nota.write(nota_html)
-            gui.atualizar_status(f"🔒 E-mail de FECHAMENTO gerado e nota improdutivo salva em {nome_nota}", "blue")
-            webbrowser.open(f'file://{caminho_completo}')
-            webbrowser.open(f'file://{caminho_nota}')
+    try:
+        caminhos = []
+        for email in emails:
+            caminho = os.path.join(pasta_temp, email.nome_arquivo)
+            with open(caminho, "w", encoding="utf-8") as f:
+                f.write(email.html)
+            caminhos.append(caminho)
+
+        if tipo is TipoEmail.FECHAMENTO:
+            gui.atualizar_status(
+                f"🔒 E-mail de FECHAMENTO gerado e nota improdutivo salva em "
+                f"{emails[1].nome_arquivo}",
+                "blue",
+            )
         else:
             gui.atualizar_status(
-                f"🌐 E-mail aberto no navegador (contato: {data_hora}). "
-                f"Pressione Ctrl+A, Ctrl+C, Ctrl+V para copiar.", "blue"
+                f"🌐 E-mail aberto no navegador (contato: {formatar_data_hora(momento)}). "
+                f"Pressione Ctrl+A, Ctrl+C, Ctrl+V para copiar.",
+                "blue",
             )
-            webbrowser.open(f'file://{caminho_completo}')
-        
+
+        for caminho in caminhos:
+            webbrowser.open(f"file://{caminho}")
+
+        gui.lembrar_funcionario(nome)
+
     except Exception as e:
+        log.exception("Erro ao gerar/abrir o e-mail")
         gui.atualizar_status(f"❌ Erro ao abrir e-mail: {str(e)}", "red")
-        messagebox.showerror("Erro", f"Não foi possível abrir o e-mail no navegador.\n\nErro: {str(e)}")
+        messagebox.showerror(
+            "Erro", f"Não foi possível abrir o e-mail no navegador.\n\nErro: {str(e)}"
+        )
