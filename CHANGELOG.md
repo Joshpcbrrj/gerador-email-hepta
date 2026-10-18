@@ -5,6 +5,19 @@ Todas as mudanças relevantes do projeto são registradas aqui.
 
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e as versões seguem o padrão `MAIOR.MENOR` (ex: 2.6).
 
+## [2.7] - 2026-10-17
+
+### Adicionado
+
+- Botão **📋 Copiar e-mail** (ou **Ctrl+Shift+Enter**): copia o e-mail direto para a área de transferência, sem abrir o navegador e sem a caixa de instruções e o rodapé de créditos. O botão **Gerar e-mail** continua funcionando como antes.
+- Colar vários telefones de uma vez (ex: `21 97914-2434 / 21 3376-3562`): o programa separa os números e reconhece celular e fixo sozinho.
+
+### Corrigido
+
+- Números com dígitos a mais ou a menos eram aceitos e formatados errado (ex: um dígito sumia sem aviso). Agora são recusados com uma mensagem explicando o problema.
+- O mesmo número podia ser adicionado duas vezes.
+- `+55` e o `0` de operadora no início do número agora são removidos, em vez de bagunçar o DDD.
+
 ## [2.6] - 2026-10-17
 
 ### Adicionado
@@ -88,6 +101,7 @@ O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e 
 
 - Primeira versão publicada.
 
+[2.7]: https://github.com/Joshpcbrrj/gerador-email-hepta/compare/v2.6...v2.7
 [2.6]: https://github.com/Joshpcbrrj/gerador-email-hepta/compare/v2.5...v2.6
 [2.5]: https://github.com/Joshpcbrrj/gerador-email-hepta/compare/v2.4...v2.5
 [2.4]: https://github.com/Joshpcbrrj/gerador-email-hepta/compare/v2.3...v2.4

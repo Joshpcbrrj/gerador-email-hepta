@@ -30,7 +30,7 @@ from eventos import (
     obter_todos_telefones,
     remover_telefone,
 )
-from geracao_email import gerar_email, limpar_pasta_temp
+from geracao_email import copiar_email, gerar_email, limpar_pasta_temp
 from registro import ARQUIVO_LOG, configurar_log
 from tema_manager import TemaManager
 from widget_helpers import aplicar_estilo_botao, preencher_horario
@@ -76,6 +76,7 @@ class GeradorEmailGUI:
             "limpar_listas": lambda: limpar_listas(self),
             "limpar_tudo": lambda: limpar_tudo(self),
             "gerar_email": self.gerar_email,
+            "copiar_email": self.copiar_email,
             "verificar_atualizacao": self.verificar_atualizacao_manual,
             "baixar_atualizacao": self.baixar_atualizacao,
             "dispensar_aviso": self.dispensar_aviso_atualizacao,
@@ -95,6 +96,7 @@ class GeradorEmailGUI:
             lambda e: webbrowser.open("https://www.linkedin.com/in/josualmeida/"),
         )
         self.janela.bind("<Control-Return>", lambda e: self.gerar_email())
+        self.janela.bind("<Control-Shift-Return>", lambda e: self.copiar_email())
 
         self._atualizar_relogio()
         # Verificação automática: logo após abrir e depois periodicamente
@@ -132,6 +134,9 @@ class GeradorEmailGUI:
     # ------------------------------------------------------------------
     def gerar_email(self):
         gerar_email(self, obter_todos_telefones)
+
+    def copiar_email(self):
+        copiar_email(self, obter_todos_telefones)
 
     # ------------------------------------------------------------------
     # Data e hora do contato

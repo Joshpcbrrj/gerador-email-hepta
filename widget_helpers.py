@@ -129,7 +129,7 @@ def criar_linha_entrada_telefone(parent, funcoes):
     frame.pack(fill="x")
     frame.grid_columnconfigure(0, weight=1)
 
-    entry = criar_entry(frame, "Digite o número com DDD (Enter adiciona como celular)")
+    entry = criar_entry(frame, "Digite ou cole o(s) número(s) com DDD (Enter adiciona)")
     entry.grid(row=0, column=0, sticky="ew", padx=(0, 8))
     entry.bind("<Return>", lambda e: funcoes["adicionar_celular"]())
 

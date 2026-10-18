@@ -14,9 +14,18 @@ from lista_telefones import (
     obter_todos_telefones_da_lista,
     remover_telefone_indice,
 )
-from telefones import formatar_celular, formatar_fixo
+from telefones import (
+    apenas_digitos,
+    eh_celular,
+    extrair_telefones,
+    formatar_celular,
+    formatar_fixo,
+    normalizar_digitos,
+    validar_telefone,
+)
 
 MENSAGEM_PRONTA = "Pronto para gerar e-mail"
+EMOJI_CELULAR, EMOJI_FIXO = "📞", "🏠"
 
 
 def mostrar_mensagem_temporaria(gui, mensagem, cor="green", duracao_ms=3000):
@@ -36,29 +45,83 @@ def mostrar_mensagem_temporaria(gui, mensagem, cor="green", duracao_ms=3000):
     gui.timer_mensagem = gui.janela.after(duracao_ms, limpar_mensagem)
 
 
-def _adicionar(gui, formatar, emoji, descricao):
-    telefone = gui.entry_telefone.get().strip()
-    if not telefone:
+def _adicionar(gui, celular):
+    """
+    Adiciona o que foi digitado no campo de telefone.
+
+    - Um número: valida e formata como celular ou fixo, conforme o botão.
+    - Vários números colados de uma vez: adiciona todos, reconhecendo
+      sozinho se cada um é celular ou fixo.
+    """
+    texto = gui.entry_telefone.get().strip()
+    if not texto:
         messagebox.showwarning("Aviso", "Digite um número de telefone!")
         return
     if len(gui.telefones) >= MAX_TELEFONES:
         messagebox.showwarning("Aviso", f"O limite é de {MAX_TELEFONES} telefones por chamado.")
         return
 
-    telefone_formatado = formatar(telefone)
-    adicionar_telefone_lista(gui, f"{emoji} {telefone_formatado}", gui.tema_manager)
+    trechos = extrair_telefones(texto)
+    if len(trechos) > 1:
+        _adicionar_varios(gui, trechos)
+        return
+
+    digitos = normalizar_digitos(apenas_digitos(texto))
+    problema = validar_telefone(digitos)
+    if problema:
+        messagebox.showwarning("Telefone inválido", f"{texto}\n\n{problema}")
+        return
+
+    formatado = formatar_celular(digitos) if celular else formatar_fixo(digitos)
+    if formatado in obter_todos_telefones_da_lista(gui):
+        gui.entry_telefone.delete(0, "end")  # nada a corrigir: o número já está na lista
+        messagebox.showwarning("Telefone repetido", f"{formatado} já está na lista.")
+        return
+
+    emoji, descricao = (EMOJI_CELULAR, "Celular") if celular else (EMOJI_FIXO, "Telefone fixo")
+    adicionar_telefone_lista(gui, f"{emoji} {formatado}", gui.tema_manager)
     gui.entry_telefone.delete(0, "end")
-    mostrar_mensagem_temporaria(gui, f"{descricao} adicionado: {telefone_formatado}", "green")
+    mostrar_mensagem_temporaria(gui, f"{descricao} adicionado: {formatado}", "green")
+
+
+def _adicionar_varios(gui, trechos):
+    """Adiciona vários números de uma vez e informa os que ficaram de fora."""
+    adicionados, ignorados = [], []
+    for trecho in trechos:
+        digitos = normalizar_digitos(apenas_digitos(trecho))
+        if validar_telefone(digitos):
+            ignorados.append(f"{trecho} (inválido)")
+            continue
+        celular = eh_celular(digitos)
+        formatado = formatar_celular(digitos) if celular else formatar_fixo(digitos)
+        if formatado in obter_todos_telefones_da_lista(gui):
+            ignorados.append(f"{formatado} (repetido)")
+            continue
+        if len(gui.telefones) >= MAX_TELEFONES:
+            ignorados.append(f"{formatado} (limite de {MAX_TELEFONES})")
+            continue
+        emoji = EMOJI_CELULAR if celular else EMOJI_FIXO
+        adicionar_telefone_lista(gui, f"{emoji} {formatado}", gui.tema_manager)
+        adicionados.append(formatado)
+
+    if adicionados:
+        gui.entry_telefone.delete(0, "end")
+        mostrar_mensagem_temporaria(gui, f"{len(adicionados)} telefone(s) adicionado(s).", "green")
+    if ignorados:
+        messagebox.showwarning(
+            "Alguns números não foram adicionados",
+            "Não adicionados:\n\n" + "\n".join(ignorados),
+        )
 
 
 def adicionar_celular(gui):
-    """Adiciona celular à lista."""
-    _adicionar(gui, formatar_celular, "📞", "Celular")
+    """Adiciona celular à lista (ou vários números colados de uma vez)."""
+    _adicionar(gui, celular=True)
 
 
 def adicionar_fixo(gui):
-    """Adiciona telefone fixo à lista."""
-    _adicionar(gui, formatar_fixo, "🏠", "Telefone fixo")
+    """Adiciona telefone fixo à lista (ou vários números colados de uma vez)."""
+    _adicionar(gui, celular=False)
 
 
 def remover_telefone(gui, indice):

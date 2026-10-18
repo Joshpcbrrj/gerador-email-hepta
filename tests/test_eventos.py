@@ -15,6 +15,7 @@ from eventos import (
     mostrar_mensagem_temporaria,
     obter_todos_telefones,
     adicionar_celular,
+    adicionar_fixo,
     remover_telefone,
     limpar_listas,
 )
@@ -91,7 +92,7 @@ class TestAdicionarTelefone:
     def test_adicionar_celular_com_telefone_valido(self):
         mock_gui = MagicMock()
         mock_gui.entry_telefone = MagicMock()
-        mock_gui.entry_telefone.get.return_value = "119991234567"
+        mock_gui.entry_telefone.get.return_value = "11999123456"
         mock_gui.tema_manager = MagicMock()
         mock_gui.timer_mensagem = None
         mock_gui.janela = MagicMock()
@@ -171,3 +172,45 @@ class TestLimparListas:
             limpar_listas(mock_gui)
             mock_limpar.assert_called_once_with(mock_gui, mock_gui.tema_manager)
             mock_gui.entry_telefone.delete.assert_called()
+
+
+class TestValidacaoAoAdicionar:
+    """Número inválido, repetido ou vários colados de uma vez"""
+
+    def _gui(self, texto, telefones=None):
+        gui = MagicMock()
+        gui.entry_telefone.get.return_value = texto
+        gui.telefones = list(telefones or [])
+        gui.timer_mensagem = None
+        return gui
+
+    def test_numero_com_digitos_a_mais_nao_entra(self):
+        gui = self._gui("119991234567")
+        with patch("eventos.adicionar_telefone_lista") as add, patch("eventos.messagebox") as mb:
+            adicionar_celular(gui)
+        add.assert_not_called()
+        assert "12 dígitos" in mb.showwarning.call_args[0][1]
+        gui.entry_telefone.delete.assert_not_called()  # mantém o texto para corrigir
+
+    def test_numero_repetido_nao_entra(self):
+        gui = self._gui("21 97914-2434", ["📞 (21) 97914-2434"])
+        with patch("eventos.adicionar_telefone_lista") as add, patch("eventos.messagebox") as mb:
+            adicionar_celular(gui)
+        add.assert_not_called()
+        assert "já está na lista" in mb.showwarning.call_args[0][1]
+        gui.entry_telefone.delete.assert_called_once()  # limpa: não há o que corrigir
+
+    def test_varios_numeros_colados(self):
+        gui = self._gui("21 97914-2434 / 21 3376-3562 / 123")
+        gui.telefones = []
+
+        def adicionar(g, texto, _tm):
+            g.telefones.append(texto)
+
+        with (
+            patch("eventos.adicionar_telefone_lista", side_effect=adicionar),
+            patch("eventos.messagebox") as mb,
+        ):
+            adicionar_fixo(gui)  # o botão não importa: cada número é reconhecido
+        assert gui.telefones == ["📞 (21) 97914-2434", "🏠 (21) 3376-3562"]
+        assert "123 (inválido)" in mb.showwarning.call_args[0][1]

@@ -61,12 +61,11 @@ def gerar_email_aviso_html(
     return _carregar_template("aviso").substitute(
         titulo=_texto(titulo),
         num_req=_texto(num_req),
-        nome=_texto(nome),
         telefones=_texto(telefones),
         data_hora=_texto(data_hora),
         tentativa_texto=tipo.extenso,
         imagem_winvnc=_imagem_winvnc(),
-        imagem_logo=_imagem_logo(),
+        assinatura=_assinatura(nome),
     )
 
 
@@ -75,9 +74,15 @@ def gerar_email_fechamento_html(titulo: str, num_req: str, nome: str, data_hora:
     return _carregar_template("fechamento").substitute(
         titulo=_texto(titulo),
         num_req=_texto(num_req),
-        nome=_texto(nome),
         data_hora=_texto(data_hora),
-        imagem_logo=_imagem_logo(),
+        assinatura=_assinatura(nome),
+    )
+
+
+def _assinatura(nome: str) -> str:
+    """Bloco de assinatura (nome, cargo, telefone e logo), comum aos e-mails."""
+    return _carregar_template("partes/assinatura").substitute(
+        nome=_texto(nome), imagem_logo=_imagem_logo()
     )
 
 

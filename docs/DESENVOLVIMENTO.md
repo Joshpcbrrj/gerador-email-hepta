@@ -5,14 +5,16 @@ Para quem vai rodar o programa pelo código, alterar, testar ou publicar uma nov
 ## Requisitos
 
 - Windows 10 ou 11
-- Python 3.13 ou superior (marque **Add Python to PATH** na instalação)
+- **Python 3.13** (marque **Add Python to PATH** na instalação)
+
+Use a mesma versão do Python que gera as releases (3.13, indicada em [`.python-version`](../.python-version) e nos workflows). Versões mais novas trazem outra versão do Tk, que já se comportou diferente na interface. Se tiver mais de uma versão instalada, crie o ambiente com `py -3.13`.
 
 ## Rodar pelo código
 
 ```bash
 git clone https://github.com/Joshpcbrrj/gerador-email-hepta.git
 cd gerador-email-hepta
-python -m venv .venv
+py -3.13 -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 python main.py
@@ -27,6 +29,8 @@ ruff format .           # formatação automática
 ```
 
 A configuração do `ruff` fica no [`pyproject.toml`](../pyproject.toml). Os três comandos também rodam no GitHub a cada push na `main` e em cada pull request ([workflow de testes](../.github/workflows/testes.yml)).
+
+O [Dependabot](../.github/dependabot.yml) abre, uma vez por mês, um pull request com as dependências atualizadas (pip e GitHub Actions). Os testes rodam no próprio PR: se passarem, basta fazer o merge.
 
 ### Snapshots: o e-mail não pode mudar sem querer
 
@@ -49,12 +53,13 @@ git diff tests/snapshots
 | `widget_helpers.py` | Componentes padronizados: cartão, campo, botão, combos de data/hora |
 | `lista_telefones.py` | Lista de telefones (estado e linhas com ✕) |
 | `eventos.py` | Ações dos botões (adicionar, remover, limpar) |
-| `geracao_email.py` | Regras (`validar_formulario`, `normalizar_req`, `montar_emails`) e ligação com a tela |
+| `geracao_email.py` | Regras (`validar_formulario`, `normalizar_req`, `montar_emails`) e os botões Gerar e Copiar |
+| `area_transferencia.py` | Botão **Copiar e-mail**: prepara o HTML (estilos embutidos, sem instruções/créditos) e grava na área de transferência do Windows |
 | `email_html.py` | Preenche os modelos de `templates/` |
-| `templates/` | **Textos dos e-mails** (`aviso.html`, `fechamento.html`, `nota_improdutivo.html`) |
+| `templates/` | **Textos dos e-mails** (`aviso.html`, `fechamento.html`, `nota_improdutivo.html`) e a assinatura comum (`partes/assinatura.html`) |
 | `tipo_email.py` | Os quatro tipos de e-mail (`TipoEmail`) e seus textos |
 | `data_hora.py` | Regra da data/hora do contato (automática ou manual) |
-| `telefones.py` | Formatação de celular e fixo |
+| `telefones.py` | Validação, formatação de celular e fixo, e separação de vários números colados juntos |
 | `imagens.py`, `utils.py` | Imagens em base64 e localização dos arquivos (inclusive dentro do `.exe`) |
 | `atualizacao.py` | Consulta a última release no GitHub e compara versões |
 | `preferencias.py` | Tema e nome do funcionário salvos em `%APPDATA%\GeradorEmailHepta` |
@@ -66,7 +71,9 @@ git diff tests/snapshots
 
 ### Alterar o texto de um e-mail
 
-Edite o arquivo em `templates/`. Os campos variáveis aparecem como `$titulo`, `$nome`, `$telefones`, `$data_hora`, `$num_req`, `$tentativa_texto`, `$imagem_winvnc` e `$imagem_logo`. Para escrever um `$` literal no texto, use `$$`. Depois, atualize os snapshots (seção anterior).
+Edite o arquivo em `templates/`. Os campos variáveis aparecem como `$titulo`, `$telefones`, `$data_hora`, `$num_req`, `$tentativa_texto` e `$imagem_winvnc`. O bloco de assinatura (nome, cargo, telefone `(61) 3424-4800` e logo) fica num só lugar, `templates/partes/assinatura.html`, e entra nos e-mails pelo campo `$assinatura`. Para escrever um `$` literal no texto, use `$$`. Depois, atualize os snapshots (seção anterior).
+
+O botão **Copiar e-mail** usa o mesmo HTML: ele remove os blocos `dica-copy` e `creditos` e embute o CSS do `<style>` em cada elemento. Se criar uma classe CSS nova num modelo, ela é embutida automaticamente.
 
 ### Decisões importantes
 

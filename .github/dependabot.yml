@@ -1,0 +1,19 @@
+# Abre pull requests quando sai versão nova das dependências.
+# Os testes rodam no próprio PR; basta conferir e fazer o merge.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      dependencias:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

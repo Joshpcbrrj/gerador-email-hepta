@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from tkinter import messagebox
 
+from area_transferencia import copiar_html, html_para_colar, texto_simples
 from config import MAX_TELEFONES
 from data_hora import formatar_data_hora
 from email_html import (
@@ -152,8 +153,16 @@ def montar_emails(
 # ============================================================================
 
 
-def gerar_email(gui, obter_telefones_func) -> None:
-    """Gera o e-mail com os dados do formulário e abre no navegador."""
+@dataclass(frozen=True)
+class Preparado:
+    tipo: TipoEmail
+    nome: str
+    momento: datetime
+    emails: list[EmailGerado]
+
+
+def _preparar(gui, obter_telefones_func) -> Preparado | None:
+    """Lê e valida o formulário e monta os e-mails; mostra o erro e retorna None se houver."""
     tipo = TipoEmail(gui.tipo_email.get())
     req = gui.entry_req.get().strip()
     nome = gui.entry_nome.get().strip()
@@ -163,7 +172,7 @@ def gerar_email(gui, obter_telefones_func) -> None:
     if erro:
         gui.atualizar_status(erro.status, "orange")
         messagebox.showerror("Erro", erro.detalhe)
-        return
+        return None
 
     # Data e hora: horário do momento da geração (automático) ou manual
     try:
@@ -171,36 +180,46 @@ def gerar_email(gui, obter_telefones_func) -> None:
     except ValueError as e:
         gui.atualizar_status(f"⚠️ {e}", "orange")
         messagebox.showerror("Erro", f"{e}\n\nVerifique a data e o horário do contato.")
+        return None
+
+    return Preparado(tipo, nome, momento, montar_emails(tipo, req, nome, telefones, momento))
+
+
+def _salvar_e_abrir(emails: list[EmailGerado]) -> None:
+    """Grava os HTMLs na pasta temporária e abre cada um no navegador."""
+    pasta_temp = obter_pasta_temp()
+    caminhos = []
+    for email in emails:
+        caminho = os.path.join(pasta_temp, email.nome_arquivo)
+        with open(caminho, "w", encoding="utf-8") as f:
+            f.write(email.html)
+        caminhos.append(caminho)
+    for caminho in caminhos:
+        webbrowser.open(f"file://{caminho}")
+
+
+def gerar_email(gui, obter_telefones_func) -> None:
+    """Gera o e-mail com os dados do formulário e abre no navegador."""
+    preparado = _preparar(gui, obter_telefones_func)
+    if not preparado:
         return
 
-    emails = montar_emails(tipo, req, nome, telefones, momento)
-    pasta_temp = obter_pasta_temp()
-
     try:
-        caminhos = []
-        for email in emails:
-            caminho = os.path.join(pasta_temp, email.nome_arquivo)
-            with open(caminho, "w", encoding="utf-8") as f:
-                f.write(email.html)
-            caminhos.append(caminho)
-
-        if tipo is TipoEmail.FECHAMENTO:
+        if preparado.tipo is TipoEmail.FECHAMENTO:
             gui.atualizar_status(
                 f"🔒 E-mail de FECHAMENTO gerado e nota improdutivo salva em "
-                f"{emails[1].nome_arquivo}",
+                f"{preparado.emails[1].nome_arquivo}",
                 "blue",
             )
         else:
             gui.atualizar_status(
-                f"🌐 E-mail aberto no navegador (contato: {formatar_data_hora(momento)}). "
+                f"🌐 E-mail aberto no navegador (contato: "
+                f"{formatar_data_hora(preparado.momento)}). "
                 f"Pressione Ctrl+A, Ctrl+C, Ctrl+V para copiar.",
                 "blue",
             )
-
-        for caminho in caminhos:
-            webbrowser.open(f"file://{caminho}")
-
-        gui.lembrar_funcionario(nome)
+        _salvar_e_abrir(preparado.emails)
+        gui.lembrar_funcionario(preparado.nome)
 
     except Exception as e:
         log.exception("Erro ao gerar/abrir o e-mail")
@@ -208,3 +227,44 @@ def gerar_email(gui, obter_telefones_func) -> None:
         messagebox.showerror(
             "Erro", f"Não foi possível abrir o e-mail no navegador.\n\nErro: {str(e)}"
         )
+
+
+def copiar_email(gui, obter_telefones_func) -> None:
+    """
+    Gera o e-mail e copia direto para a área de transferência (sem navegador).
+    No fechamento, a nota de improdutivo ainda abre no navegador.
+    """
+    preparado = _preparar(gui, obter_telefones_func)
+    if not preparado:
+        return
+
+    email = preparado.emails[0]
+    try:
+        fragmento = html_para_colar(email.html)
+        copiar_html(fragmento, texto_simples(fragmento))
+    except Exception as e:
+        log.exception("Erro ao copiar o e-mail")
+        gui.atualizar_status(f"❌ Não foi possível copiar: {e}", "red")
+        messagebox.showerror(
+            "Erro",
+            f"Não foi possível copiar o e-mail.\n\nErro: {e}\n\n"
+            "Use o botão Gerar e-mail e copie pelo navegador.",
+        )
+        return
+
+    if preparado.tipo is TipoEmail.FECHAMENTO:
+        try:
+            _salvar_e_abrir(preparado.emails[1:])
+        except Exception:
+            log.exception("Erro ao abrir a nota de improdutivo")
+        gui.atualizar_status(
+            "📋 E-mail de fechamento copiado! Cole com Ctrl+V. A nota abriu no navegador.",
+            "blue",
+        )
+    else:
+        gui.atualizar_status(
+            f"📋 E-mail copiado (contato: {formatar_data_hora(preparado.momento)})! "
+            "Cole no e-mail corporativo com Ctrl+V.",
+            "blue",
+        )
+    gui.lembrar_funcionario(preparado.nome)

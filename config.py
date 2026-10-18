@@ -15,7 +15,7 @@ import os
 # ============================================================================
 # ATENÇÃO: atualize a cada nova release (veja docs/DESENVOLVIMENTO.md).
 # O workflow de release falha se a tag não bater com este valor.
-VERSAO_ATUAL = "2.6"
+VERSAO_ATUAL = "2.7"
 
 # Intervalo da verificação automática de atualizações (programa aberto)
 INTERVALO_VERIFICAR_ATUALIZACAO_MS = 4 * 60 * 60 * 1000  # 4 horas

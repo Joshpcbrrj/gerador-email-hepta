@@ -26,7 +26,9 @@ from widget_helpers import (
     criar_secao,
 )
 
-TEXTO_HORARIO_AUTOMATICO = "A data e a hora serão as do momento em que você clicar em Gerar e-mail."
+TEXTO_HORARIO_AUTOMATICO = (
+    "A data e a hora serão as do momento em que você gerar ou copiar o e-mail."
+)
 TEXTO_HORARIO_MANUAL = (
     "Usando a data e a hora escolhidas acima. Ative a opção para voltar ao horário atual."
 )
@@ -147,7 +149,7 @@ def _criar_toolbar(gui, funcoes):
     frame = ctk.CTkFrame(gui.frame_root, fg_color="transparent")
     frame.grid(row=2, column=0, sticky="ew", pady=(0, 12))
     frame.grid_columnconfigure(0, weight=2, uniform="toolbar")
-    frame.grid_columnconfigure((1, 2), weight=1, uniform="toolbar")
+    frame.grid_columnconfigure((1, 2, 3), weight=1, uniform="toolbar")
 
     gui.btn_gerar = criar_botao(
         frame,
@@ -159,11 +161,15 @@ def _criar_toolbar(gui, funcoes):
     )
     gui.btn_gerar.grid(row=0, column=0, sticky="ew", padx=(0, 8))
 
+    # Copia direto para a área de transferência, sem abrir o navegador
+    gui.btn_copiar = criar_botao(frame, "📋 Copiar e-mail", funcoes["copiar_email"], altura=42)
+    gui.btn_copiar.grid(row=0, column=1, sticky="ew", padx=(0, 8))
+
     criar_botao(frame, "Limpar telefones", funcoes["limpar_listas"], altura=42).grid(
-        row=0, column=1, sticky="ew", padx=(0, 8)
+        row=0, column=2, sticky="ew", padx=(0, 8)
     )
     criar_botao(frame, "Novo e-mail", funcoes["limpar_tudo"], altura=42).grid(
-        row=0, column=2, sticky="ew"
+        row=0, column=3, sticky="ew"
     )
 
 
