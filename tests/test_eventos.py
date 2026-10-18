@@ -119,7 +119,7 @@ class TestAdicionarTelefone:
 class TestRemoverTelefone:
     """Testes para remover telefones"""
 
-    def test_remover_telefone_selecionado(self):
+    def test_remover_telefone_por_indice(self):
         mock_gui = MagicMock()
         mock_gui.tema_manager = MagicMock()
         mock_gui.timer_mensagem = None
@@ -127,17 +127,33 @@ class TestRemoverTelefone:
         mock_gui.status_label = MagicMock()
         mock_gui.tema_manager.cor_status.return_value = "#ef6c00"
 
-        with patch("eventos.remover_telefone_selecionado", return_value="📞 (11) 99999-9999"):
-            remover_telefone(mock_gui)
+        with patch("eventos.remover_telefone_indice", return_value="📞 (11) 99999-9999") as mock_rem:
+            remover_telefone(mock_gui, 1)
+            mock_rem.assert_called_once_with(mock_gui, 1, mock_gui.tema_manager)
+            mock_gui.status_label.configure.assert_called_once()
 
-    def test_remover_telefone_sem_selecao(self):
+    def test_remover_telefone_indice_invalido_nao_mostra_mensagem(self):
         mock_gui = MagicMock()
         mock_gui.tema_manager = MagicMock()
 
-        with patch("eventos.remover_telefone_selecionado", return_value=None):
+        with patch("eventos.remover_telefone_indice", return_value=None):
+            remover_telefone(mock_gui, 99)
+            mock_gui.status_label.configure.assert_not_called()
+
+
+class TestLimiteTelefones:
+    """Não deixa adicionar mais que o limite de telefones"""
+
+    def test_adicionar_acima_do_limite_avisa(self):
+        mock_gui = MagicMock()
+        mock_gui.entry_telefone.get.return_value = "21999998888"
+        mock_gui.telefones = [f"📞 (21) 9999{i}-0000" for i in range(10)]
+
+        with patch("eventos.adicionar_telefone_lista") as mock_add:
             with patch("eventos.messagebox") as mock_messagebox:
-                remover_telefone(mock_gui)
+                adicionar_celular(mock_gui)
                 mock_messagebox.showwarning.assert_called_once()
+                mock_add.assert_not_called()
 
 
 class TestLimparListas:

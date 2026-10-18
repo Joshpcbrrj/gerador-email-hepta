@@ -12,6 +12,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pytest
 from unittest.mock import patch, MagicMock
 
+PASTA_ASSETS = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+
 
 class TestImagemToBase64:
     """Testes para conversão de imagem para base64"""
@@ -27,8 +29,9 @@ class TestImagemToBase64:
         """Teste: logo.png existe e é convertido"""
         from imagens import imagem_to_base64
         
-        if os.path.exists("logo.png"):
-            resultado = imagem_to_base64("logo.png")
+        caminho = os.path.join(PASTA_ASSETS, "logo.png")
+        if os.path.exists(caminho):
+            resultado = imagem_to_base64(caminho)
             assert resultado is not None
             assert isinstance(resultado, str)
             assert len(resultado) > 0
@@ -39,8 +42,9 @@ class TestImagemToBase64:
         """Teste: winvnc.png existe e é convertido"""
         from imagens import imagem_to_base64
         
-        if os.path.exists("winvnc.png"):
-            resultado = imagem_to_base64("winvnc.png")
+        caminho = os.path.join(PASTA_ASSETS, "winvnc.png")
+        if os.path.exists(caminho):
+            resultado = imagem_to_base64(caminho)
             assert resultado is not None
             assert isinstance(resultado, str)
         else:

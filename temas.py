@@ -1,120 +1,113 @@
 # -*- coding: utf-8 -*-
 """
-MÓDULO DE CORES DOS TEMAS
+MÓDULO DE CORES E FONTES DOS TEMAS
 ================================================================================
-Cores para os temas claro e escuro.
+Paleta dos temas claro e escuro.
+
+Os widgets recebem as cores como par (claro, escuro) através de cor(nome).
+O próprio CustomTkinter troca entre as duas quando o modo de aparência muda,
+então nenhum widget precisa ser repintado manualmente.
 """
+
+FONTE_FAMILIA = "Segoe UI"
 
 CORES = {
     'claro': {
-        'bg': '#f0f0f0',
-        'fg': '#333333',
-        'frame_bg': '#f0f0f0',
-        'frame_title_fg': '#333333',
-        'header_bg': '#f0f0f0',
-        'header_fg': '#2196F3',
-        'status_bg': '#f0f0f0',
-        'status_fg': 'green',
-        'label_bg': '#f0f0f0',
-        'label_fg': '#333333',
-        'feedback_fg': '#000000',
+        # Base
+        'bg': '#f3f4f6',
+        'fg': '#1f2937',
+        'fg_muted': '#6b7280',
+        'frame_bg': '#ffffff',          # Cartões (seções)
+        'border': '#e2e5ea',
+        # Ação principal
+        'primary': '#2563eb',
+        'primary_hover': '#1d4ed8',
+        'primary_fg': '#ffffff',
+        # Ação secundária
+        'sec_bg': '#e9ecf1',
+        'sec_hover': '#dde1e8',
+        'sec_fg': '#1f2937',
+        # Campos
         'entry_bg': '#ffffff',
-        'entry_fg': '#333333',
+        'entry_border': '#cfd4dc',
+        # Lista de telefones
         'listbox_bg': '#ffffff',
-        'listbox_fg': '#333333',
-        'listbox_select_bg': '#e3f2fd',
-        'radiobutton_bg': '#f0f0f0',
-        'radiobutton_fg': '#333333',
-        'radiobutton_select': '#2196F3',
-        'radiobutton_active_bg': '#e3f2fd',
-        'button_sec_bg': '#6c757d',
-        'button_sec_fg': 'white',
-        'button_gerar_bg': '#2196F3',
-        'button_gerar_fg': 'white',
-        'button_limpar_bg': '#FF9800',
-        'button_limpar_fg': 'white',
-        'button_novo_bg': '#9C27B0',
-        'button_novo_fg': 'white',
-        'rodape_bg': '#e0e0e0',
-        'rodape_fg': '#333333',
-        'rodape_link_fg': '#2196F3',
-        'list_row_bg': '#ffffff',
-        'list_row_selected_bg': '#e3f2fd',
-        'list_row_hover_bg': '#bbdefb',
-        'list_row_fg': '#333333',
-        'list_empty_fg': '#757575',
-        'list_scroll_bg': '#f5f5f5',
-        'status_ok': '#2e7d32',
-        'status_warning': '#ef6c00',
-        'status_info': '#1565c0',
-        'status_muted': '#616161',
-        'button_celular': '#4CAF50',
-        'button_fixo': '#FF9800',
-        'button_remover': '#f44336',
-        'section_title_fg': '#1976D2',
+        'list_row_bg': '#f5f7fa',
+        'list_row_hover_bg': '#eceff4',
+        'list_remove_hover': '#fde2e2',
+        # Status
+        'success': '#15803d',
+        'warning': '#b45309',
+        'info': '#1d4ed8',
+        'danger': '#dc2626',
+        # Rodapé
+        'statusbar_bg': '#ffffff',
+        'link_fg': '#2563eb',
+        # Aviso de atualização
+        'banner_bg': '#eff6ff',
+        'banner_border': '#bfdbfe',
+        'banner_fg': '#1e3a8a',
     },
     'escuro': {
-        'bg': '#1e1e2e',
-        'fg': '#cdd6f4',
-        'frame_bg': '#1e1e2e',           # Fundo escuro para os LabelFrames
-        'frame_title_fg': '#89b4fa',     # Título azul claro
-        'header_bg': '#1e1e2e',
-        'header_fg': '#89b4fa',
-        'status_bg': '#1e1e2e',
-        'status_fg': '#a6e3a1',
-        'label_bg': '#1e1e2e',
-        'label_fg': '#cdd6f4',
-        'feedback_fg': '#ffffff',
-        'entry_bg': '#313244',
-        'entry_fg': '#cdd6f4',
-        'listbox_bg': '#1e1e2e',
-        'listbox_fg': '#cdd6f4',
-        'listbox_select_bg': '#313244',
-        'radiobutton_bg': '#1e1e2e',
-        'radiobutton_fg': '#cdd6f4',
-        'radiobutton_select': '#89b4fa',
-        'radiobutton_active_bg': '#313244',
-        'button_sec_bg': '#313244',
-        'button_sec_fg': '#cdd6f4',
-        'button_gerar_bg': '#a6e3a1',
-        'button_gerar_fg': '#1e1e2e',
-        'button_limpar_bg': '#f9e2af',
-        'button_limpar_fg': '#1e1e2e',
-        'button_novo_bg': '#cba6f7',
-        'button_novo_fg': '#1e1e2e',
-        'rodape_bg': '#11111b',
-        'rodape_fg': '#a6adc8',
-        'rodape_link_fg': '#89b4fa',
-        'list_row_bg': '#313244',
-        'list_row_selected_bg': '#45475a',
-        'list_row_hover_bg': '#585b70',
-        'list_row_fg': '#cdd6f4',
-        'list_empty_fg': '#6c7086',
-        'list_scroll_bg': '#181825',
-        'status_ok': '#a6e3a1',
-        'status_warning': '#fab387',
-        'status_info': '#89b4fa',
-        'status_muted': '#a6adc8',
-        'button_celular': '#a6e3a1',
-        'button_fixo': '#fab387',
-        'button_remover': '#f38ba8',
-        'section_title_fg': '#89b4fa',
-    }
+        # Base
+        'bg': '#111318',
+        'fg': '#e6e8ec',
+        'fg_muted': '#9aa3b2',
+        'frame_bg': '#1a1d24',
+        'border': '#2a2f3a',
+        # Ação principal
+        'primary': '#3b82f6',
+        'primary_hover': '#2563eb',
+        'primary_fg': '#ffffff',
+        # Ação secundária
+        'sec_bg': '#262a33',
+        'sec_hover': '#313643',
+        'sec_fg': '#e6e8ec',
+        # Campos
+        'entry_bg': '#13161c',
+        'entry_border': '#363c49',
+        # Lista de telefones
+        'listbox_bg': '#13161c',
+        'list_row_bg': '#20242c',
+        'list_row_hover_bg': '#2a2f3a',
+        'list_remove_hover': '#4c1d1d',
+        # Status
+        'success': '#4ade80',
+        'warning': '#fbbf24',
+        'info': '#60a5fa',
+        'danger': '#f87171',
+        # Rodapé
+        'statusbar_bg': '#1a1d24',
+        'link_fg': '#60a5fa',
+        # Aviso de atualização
+        'banner_bg': '#172554',
+        'banner_border': '#1e3a8a',
+        'banner_fg': '#dbeafe',
+    },
 }
 
-# Mapeamento de cores legadas (mensagens temporárias) para hex do tema
-COR_STATUS_CLARO = {
-    'green': '#2e7d32',
-    'orange': '#ef6c00',
-    'blue': '#1565c0',
-    'white': '#333333',
-    'black': '#333333',
+# Nomes de cor usados nas mensagens de status -> chave da paleta
+COR_STATUS = {
+    'green': 'success',
+    'orange': 'warning',
+    'blue': 'info',
+    'red': 'danger',
+    'white': 'fg',
+    'black': 'fg',
+    'muted': 'fg_muted',
 }
 
-COR_STATUS_ESCURO = {
-    'green': '#a6e3a1',
-    'orange': '#fab387',
-    'blue': '#89b4fa',
-    'white': '#cdd6f4',
-    'black': '#cdd6f4',
-}
+
+def cor(nome):
+    """Retorna o par (claro, escuro) de uma cor da paleta, no formato do CustomTkinter."""
+    return (CORES['claro'][nome], CORES['escuro'][nome])
+
+
+def cor_status(nome_cor):
+    """Retorna o par (claro, escuro) para um nome de cor de status ('green', 'orange'...)."""
+    return cor(COR_STATUS.get(nome_cor, 'success'))
+
+
+def fonte(tamanho=13, peso="normal"):
+    """Fonte padrão da interface (tamanho em pixels, como no CustomTkinter)."""
+    return (FONTE_FAMILIA, tamanho, peso)

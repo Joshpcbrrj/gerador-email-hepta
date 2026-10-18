@@ -7,15 +7,14 @@ Funções para gerar o e-mail a partir dos dados do formulário.
 Versão: Salva em pasta temporária que é limpa ao fechar o programa
 """
 
-import tkinter as tk
-from datetime import datetime
 import webbrowser
 import tempfile
 import os
 import shutil
 from tkinter import messagebox
 from email_html import gerar_email_aviso_html, gerar_email_fechamento_html
-from telefones import formatar_telefones  # IMPORT ADICIONADO
+from telefones import formatar_telefones
+from data_hora import formatar_data_hora
 
 # ============================================================================
 # PASTA TEMPORÁRIA DO PROGRAMA
@@ -155,20 +154,24 @@ def gerar_email(gui, obter_telefones_func):
         num_req_completo = f"REQ{num_req}"
         num_req_num = num_req
     
-    # Data selecionada ou data atual como padrão
-    if hasattr(gui, 'spin_dia') and hasattr(gui, 'spin_mes') and hasattr(gui, 'spin_ano'):
-        data_atual = f"{gui.spin_dia.get().zfill(2)}/{gui.spin_mes.get().zfill(2)}/{gui.spin_ano.get()}"
-    else:
-        data_atual = datetime.now().strftime("%d/%m/%Y")
+    # ====================================================================
+    # DATA E HORA: horário do momento da geração (automático) ou manual
+    # ====================================================================
+    try:
+        momento = gui.obter_data_hora_contato()
+    except ValueError as e:
+        gui.atualizar_status(f"⚠️ {e}", "orange")
+        messagebox.showerror("Erro", f"{e}\n\nVerifique a data e o horário do contato.")
+        return
 
-    hora = gui.spin_hora.get().zfill(2)
-    minuto = gui.spin_minuto.get().zfill(2)
-    
+    data_hora = formatar_data_hora(momento)
+    hora = f"{momento.hour:02d}"
+    minuto = f"{momento.minute:02d}"
+
     if tipo == '4':
         # ====================================================================
         # E-MAIL DE FECHAMENTO
         # ====================================================================
-        data_hora = f"{data_atual} às {datetime.now().strftime('%H:%M')} BRT"
         titulo = f"{num_req_completo} - Chamado Fechado"
         
         html = gerar_email_fechamento_html(titulo, num_req_completo, nome, data_hora)
@@ -182,8 +185,7 @@ def gerar_email(gui, obter_telefones_func):
         telefones = obter_telefones_func(gui)
         telefone_str = formatar_telefones(telefones)  # Agora importada de telefones.py
         tentativa_ordinal = {'1': '1º', '2': '2º', '3': '3º'}[tipo]
-        
-        data_hora = f"{data_atual} às {hora}:{minuto} BRT"
+
         titulo = f"{num_req_completo} - {tentativa_ordinal} aviso de tentativa de contato com o cliente"
         
         html = gerar_email_aviso_html(titulo, num_req_completo, nome, telefone_str, data_hora, tipo)
@@ -214,7 +216,10 @@ def gerar_email(gui, obter_telefones_func):
             webbrowser.open(f'file://{caminho_completo}')
             webbrowser.open(f'file://{caminho_nota}')
         else:
-            gui.atualizar_status(f"🌐 E-mail aberto no navegador! Pressione Ctrl+A, Ctrl+C, Ctrl+V para copiar.", "blue")
+            gui.atualizar_status(
+                f"🌐 E-mail aberto no navegador (contato: {data_hora}). "
+                f"Pressione Ctrl+A, Ctrl+C, Ctrl+V para copiar.", "blue"
+            )
             webbrowser.open(f'file://{caminho_completo}')
         
     except Exception as e:

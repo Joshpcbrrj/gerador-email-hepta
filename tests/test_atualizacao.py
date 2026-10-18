@@ -83,3 +83,65 @@ class TestVerificarAtualizacao:
         
         # O callback deve ser chamado (está atualizado)
         mock_gui.after.assert_called()
+
+class TestComparacaoVersoes:
+    """Comparação numérica de versões (texto falharia em '2.10' > '2.9')"""
+
+    def test_versao_maior(self):
+        from atualizacao import versao_mais_nova
+        assert versao_mais_nova("2.7", "2.6")
+
+    def test_versao_igual_nao_e_mais_nova(self):
+        from atualizacao import versao_mais_nova
+        assert not versao_mais_nova("2.6", "2.6")
+
+    def test_versao_dois_digitos(self):
+        from atualizacao import versao_mais_nova
+        assert versao_mais_nova("2.10", "2.9")
+        assert not versao_mais_nova("2.9", "2.10")
+
+    def test_versao_com_prefixo_e_patch(self):
+        from atualizacao import versao_mais_nova
+        assert versao_mais_nova("v2.6.1", "2.6")
+
+    def test_versao_vazia(self):
+        from atualizacao import versao_mais_nova
+        assert not versao_mais_nova("", "2.6")
+
+
+class TestAvisoAutomatico:
+    """Verificação silenciosa: avisa a interface sem abrir popup"""
+
+    @patch('atualizacao.perguntar_download')
+    @patch('atualizacao.consultar_ultima_release')
+    def test_versao_nova_chama_ao_encontrar_sem_popup(self, mock_consulta, mock_popup):
+        from atualizacao import verificar_atualizacao
+        import time
+
+        release = {'versao': '99.0', 'url': 'https://github.com/x', 'notas': 'novidades'}
+        mock_consulta.return_value = release
+        mock_janela = MagicMock()
+        mock_janela.after.side_effect = lambda _ms, func: func()
+        ao_encontrar = MagicMock()
+
+        verificar_atualizacao(mock_janela, ao_encontrar=ao_encontrar, silencioso=True)
+        time.sleep(0.3)
+
+        ao_encontrar.assert_called_once_with(release)
+        mock_popup.assert_not_called()
+
+    @patch('atualizacao.consultar_ultima_release')
+    def test_erro_chama_ao_falhar(self, mock_consulta):
+        from atualizacao import verificar_atualizacao
+        import time
+
+        mock_consulta.side_effect = Exception("Sem internet")
+        mock_janela = MagicMock()
+        mock_janela.after.side_effect = lambda _ms, func: func()
+        callback, ao_falhar = MagicMock(), MagicMock()
+
+        verificar_atualizacao(mock_janela, callback=callback, ao_falhar=ao_falhar)
+        time.sleep(0.3)
+
+        ao_falhar.assert_called_once()
+        callback.assert_not_called()
